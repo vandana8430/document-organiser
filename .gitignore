@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.venv311/
+venv/
+env/
+.env
+*.log
+*.wav
+backups/
+data.db
+uploads/*

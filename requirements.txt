@@ -1,0 +1,20 @@
+# Core runtime (Python 3.10 or newer)
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.27,<1.0
+python-multipart>=0.0.9,<1.0
+numpy>=1.24,<3.0
+pypdf>=4.0,<7.0
+python-docx>=1.0,<2.0
+openpyxl>=3.1.5,<4.0
+python-pptx>=1.0.2,<2.0
+Pillow>=10.0,<13.0
+pytesseract>=0.3.10,<0.4
+python-dotenv>=1.0,<2.0
+
+# Test tools
+pytest>=8.0,<9.0
+httpx>=0.27,<1.0
+
+# Optional AI features (not required to run SmartFiles):
+# sentence-transformers>=2.6  # MiniLM semantic search and CLIP visual similarity
+# faster-whisper>=1.0         # Optional video transcription; FFmpeg must also be installed
