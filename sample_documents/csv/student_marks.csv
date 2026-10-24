@@ -1,0 +1,8 @@
+"SAMPLE DATA - FICTIONAL STUDENT MARKS"
+"Student ID","Fictional Name","Database Systems","Networks","Statistics","Total","Status"
+"ST-2101","Riya Nair","86","81","90","257","Pass"
+"ST-2102","Omar Saleh","78","88","84","250","Pass"
+"ST-2103","Lena Ortiz","92","89","87","268","Pass"
+"ST-2104","Dev Malik","69","74","77","220","Pass"
+"ST-2105","Aya Mori","58","63","71","192","Pass"
+"ST-2106","Theo Park","43","56","49","148","Review"

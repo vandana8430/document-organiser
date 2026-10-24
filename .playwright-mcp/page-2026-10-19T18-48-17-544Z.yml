@@ -1,0 +1,309 @@
+- generic [ref=f5e2]:
+  - complementary [ref=f5e3]:
+    - generic [ref=f5e4]:
+      - generic [ref=f5e5]: 📁
+      - text: SmartFiles
+    - navigation "Workspace" [ref=f5e6]:
+      - button "▦ Dashboard" [ref=f5e7] [cursor=pointer]
+      - button "📄 My Documents" [ref=f5e8] [cursor=pointer]
+      - button "⬆ Upload Documents" [ref=f5e9] [cursor=pointer]
+      - button "⌕ Search" [ref=f5e10] [cursor=pointer]
+      - button "✧ AI Assistant" [ref=f5e11] [cursor=pointer]
+      - button "🧩 Duplicate Finder" [ref=f5e12] [cursor=pointer]
+      - button "⇄ Document Comparison" [ref=f5e13] [cursor=pointer]
+      - button "⌕ Plagiarism Checker" [ref=f5e14] [cursor=pointer]
+      - button "◉ File Compressor" [ref=f5e15] [cursor=pointer]
+      - button "◈ Storage Optimizer" [ref=f5e16] [cursor=pointer]
+    - generic [ref=f5e17]:
+      - button "↪ Sign out" [ref=f5e18] [cursor=pointer]
+      - generic [ref=f5e19]:
+        - generic [ref=f5e20]: P
+        - generic [ref=f5e21]:
+          - strong [ref=f5e22]: phase6-1792435616372@example.test
+          - text: Personal workspace
+  - main [ref=f5e23]:
+    - generic [ref=f5e24]:
+      - generic [ref=f5e25]:
+        - heading "Plagiarism Checker" [level=2] [ref=f5e274]
+        - generic [ref=f5e27]: Your intelligent document workspace
+      - generic [ref=f5e28]:
+        - generic [ref=f5e29]:
+          - searchbox "Search documents by filename, topic, tag, or content" [ref=f5e30]
+          - generic "Search filters" [ref=f5e31]:
+            - combobox "Filter by category" [ref=f5e32]:
+              - option "All categories" [selected]
+              - option "Education & Assignments"
+              - option "Career & Resumes"
+              - option "Certificates"
+              - option "Project Reports"
+              - option "Technical Notes"
+              - option "Financial Documents"
+              - option "Presentations"
+              - option "Images & Scanned Documents"
+              - option "Other Documents"
+            - combobox "Filter by file type" [ref=f5e33]:
+              - option "All file types" [selected]
+              - option "PDF"
+              - option "DOCX"
+              - option "TXT"
+              - option "CSV"
+              - option "XLSX"
+              - option "PPTX"
+              - option "PNG"
+              - option "JPG"
+              - option "JPEG"
+            - searchbox "Filter by tag" [ref=f5e34]
+            - generic [ref=f5e35]:
+              - text: From
+              - textbox "Uploaded from date" [ref=f5e36]
+            - generic [ref=f5e37]:
+              - text: To
+              - textbox "Uploaded through date" [ref=f5e38]
+        - button "Open upload documents" [ref=f5e39] [cursor=pointer]: + Upload
+    - generic [ref=f5e275]:
+      - generic [ref=f5e277]:
+        - generic [ref=f5e278]: DOCUMENT INTEGRITY
+        - heading "Plagiarism & Source Checker" [level=2] [ref=f5e279]
+        - paragraph [ref=f5e280]: Review text overlap in your own documents, with optional Firecrawl source discovery.
+      - region [ref=f5e281]:
+        - generic [ref=f5e282]:
+          - generic [aria-hidden] [ref=f5e283]: ⌕
+          - generic [ref=f5e284]:
+            - heading "Start a document review" [level=3] [ref=f5e285]
+            - paragraph [ref=f5e286]: Choose an uploaded document or add a PDF, DOCX, or TXT file.
+        - generic [ref=f5e287]:
+          - generic [ref=f5e288]:
+            - generic [ref=f5e289]:
+              - generic [ref=f5e290]: Document to check
+              - combobox "Document to check" [ref=f5e291]:
+                - option "Select a document" [selected]
+                - option "phase6-draft.txt"
+                - option "phase6-reference.txt"
+            - generic [ref=f5e292]:
+              - generic [ref=f5e293]:
+                - generic [ref=f5e294]: Or upload a document
+                - button "Or upload a document" [ref=f5e295]
+              - button "Upload document" [ref=f5e296] [cursor=pointer]
+          - generic [ref=f5e297]:
+            - generic [ref=f5e298] [cursor=pointer]:
+              - checkbox "Include online source discovery Use Firecrawl to search selected passages and compare any returned page text. Your complete document is not sent." [ref=f5e299]
+              - generic [ref=f5e300]:
+                - strong [ref=f5e301]: Include online source discovery
+                - generic [ref=f5e302]: Use Firecrawl to search selected passages and compare any returned page text. Your complete document is not sent.
+            - paragraph [ref=f5e303]: Online discovery requires FIRECRAWL_API_KEY on the backend. Local comparison works without an API key and remains available if Firecrawl cannot run.
+        - generic [ref=f5e304]:
+          - button "Check document" [disabled] [ref=f5e305]:
+            - generic [aria-hidden] [ref=f5e306]: ⌕
+            - text: Check document
+          - generic [ref=f5e307]: Similarity is a review signal, not a plagiarism verdict.
+        - generic [ref=f5e308]:
+          - generic [ref=f5e343]:
+            - generic [ref=f5e344]:
+              - generic [ref=f5e345]: SCAN REPORT
+              - heading "phase6-draft.txt" [level=3] [ref=f5e346]
+              - paragraph [ref=f5e347]: Scanned 10/20/2026, 12:16:56 AM
+            - generic [ref=f5e348]:
+              - generic [ref=f5e349]: completed
+              - button "Download PDF report for phase6-draft.txt" [ref=f5e350] [cursor=pointer]: Download PDF Report
+          - generic [ref=f5e351]:
+            - 'article "Document: phase6-draft.txt" [ref=f5e352]':
+              - generic [ref=f5e353]:
+                - generic [ref=f5e354]: ▤
+                - generic [ref=f5e355]: Document
+              - strong [ref=f5e356]: phase6-draft.txt
+              - generic [ref=f5e357]: Selected file
+            - 'article "Scan status: completed" [ref=f5e358]':
+              - generic [ref=f5e359]:
+                - generic [ref=f5e360]: ✓
+                - generic [ref=f5e361]: Scan status
+              - strong [ref=f5e362]: completed
+              - generic [ref=f5e363]: Matches need review
+            - 'article "Analyzed words: 32" [ref=f5e364]':
+              - generic [ref=f5e365]:
+                - generic [ref=f5e366]: Aa
+                - generic [ref=f5e367]: Analyzed words
+              - strong [ref=f5e368]: "32"
+              - generic [ref=f5e369]: Document text examined
+            - 'article "Local exact matches: 1" [ref=f5e370]':
+              - generic [ref=f5e371]:
+                - generic [ref=f5e372]: ≡
+                - generic [ref=f5e373]: Local exact matches
+              - strong [ref=f5e374]: "1"
+              - generic [ref=f5e375]: Other documents in your account
+            - 'article "Local approximate matches: 0" [ref=f5e376]':
+              - generic [ref=f5e377]:
+                - generic [ref=f5e378]: ≈
+                - generic [ref=f5e379]: Local approximate matches
+              - strong [ref=f5e380]: "0"
+              - generic [ref=f5e381]: Other documents in your account
+            - 'article "Online matches: Not requested" [ref=f5e382]':
+              - generic [ref=f5e383]:
+                - generic [ref=f5e384]: ⌕
+                - generic [ref=f5e385]: Online matches
+              - strong [ref=f5e386]: Not requested
+              - generic [ref=f5e387]: Online check not enabled
+            - 'article "Possible sources: 1" [ref=f5e388]':
+              - generic [ref=f5e389]:
+                - generic [ref=f5e390]: ↗
+                - generic [ref=f5e391]: Possible sources
+              - strong [ref=f5e392]: "1"
+              - generic [ref=f5e393]: Local documents and returned sources
+            - 'article "Online pages checked: Not requested" [ref=f5e394]':
+              - generic [ref=f5e395]:
+                - generic [ref=f5e396]: ▣
+                - generic [ref=f5e397]: Online pages checked
+              - strong [ref=f5e398]: Not requested
+              - generic [ref=f5e399]: Online check not enabled
+            - 'article "Unchecked passages: 0" [ref=f5e400]':
+              - generic [ref=f5e401]:
+                - generic [ref=f5e402]: "!"
+                - generic [ref=f5e403]: Unchecked passages
+              - strong [ref=f5e404]: "0"
+              - generic [ref=f5e405]: Online check not requested · not analyzed locally
+          - generic [ref=f5e406]:
+            - heading "Passage coverage" [level=3] [ref=f5e407]
+            - generic [ref=f5e408]:
+              - article [ref=f5e409]:
+                - generic [ref=f5e410]: "!"
+                - strong [ref=f5e411]: Matched text
+                - paragraph [ref=f5e412]: Detected passages are listed below for review.
+              - article [ref=f5e413]:
+                - generic [ref=f5e414]: ✓
+                - strong [ref=f5e415]: Checked, no local match detected
+                - paragraph [ref=f5e416]: 1 of 2 analyzed passages had no detected local match.
+              - article [ref=f5e417]:
+                - generic [ref=f5e418]: "!"
+                - strong [ref=f5e419]: Unchecked text
+                - paragraph [ref=f5e420]: "Not analyzed locally: 0."
+                - paragraph [ref=f5e421]: Online source discovery was not requested.
+          - generic [ref=f5e422]:
+            - heading "Visual analytics" [level=3] [ref=f5e423]
+            - paragraph [ref=f5e424]: Charts use passage counts and the same backend results shown above. Missing metrics remain unavailable.
+            - generic [ref=f5e425]:
+              - article [ref=f5e426]:
+                - heading "Local passage coverage" [level=4] [ref=f5e427]
+                - paragraph [ref=f5e428]: Passage counts for local comparison. Unchecked passages are separate from passages that were checked and had no detected local match.
+                - generic [ref=f5e429]:
+                  - 'img "Local passage coverage: 1 matched locally, 1 checked with no local match, 0 unchecked locally." [ref=f5e430]':
+                    - 'generic "Matched locally: 1 of 2 eligible passages" [ref=f5e432]'
+                    - 'generic "Checked, no local match detected: 1 of 2 eligible passages" [ref=f5e433]'
+                    - generic [ref=f5e434]: "2"
+                    - generic [ref=f5e435]: passages
+                  - list [ref=f5e436]:
+                    - 'listitem "Matched locally: 1 passages" [ref=f5e437]':
+                      - generic [ref=f5e439]: "Matched locally: 1 (50.0%)"
+                    - 'listitem "Checked, no local match detected: 1 passages" [ref=f5e440]':
+                      - generic [ref=f5e442]: "Checked, no local match detected: 1 (50.0%)"
+                    - 'listitem "Unchecked locally: 0 passages" [ref=f5e443]':
+                      - generic [ref=f5e445]: "Unchecked locally: 0 (0.0%)"
+              - article [ref=f5e446]:
+                - heading "Matching passages by type" [level=4] [ref=f5e447]
+                - paragraph [ref=f5e448]: All values are unique passage counts, not word counts. Online counts appear only when Firecrawl returned page text for analysis.
+                - generic [ref=f5e449]:
+                  - 'generic "Local exact: 1 passages" [ref=f5e450]':
+                    - generic "Unique original passages with an exact match in another uploaded document." [ref=f5e451]: Local exact
+                    - strong [ref=f5e454]: "1"
+                  - 'generic "Local approximate: 0 passages" [ref=f5e455]':
+                    - generic "Unique original passages with approximate-only local matches." [ref=f5e456]: Local approximate
+                    - strong [ref=f5e458]: "0"
+                  - 'generic "Online exact: unavailable" [ref=f5e459]':
+                    - generic "Unique original passages with exact text found in retrieved Firecrawl page text." [ref=f5e460]: Online exact
+                    - strong [ref=f5e462]: Unavailable
+                  - 'generic "Online approximate: unavailable" [ref=f5e463]':
+                    - generic "Unique original passages with approximate matches in retrieved Firecrawl page text." [ref=f5e464]: Online approximate
+                    - strong [ref=f5e466]: Unavailable
+              - article [ref=f5e467]:
+                - heading "Matching passages by source" [level=4] [ref=f5e468]
+                - paragraph [ref=f5e469]: Counts are distinct matched passages per source. Search results without a compared text match are not included.
+                - 'generic "Local document: phase6-reference.txt; 1 distinct matching passages" [ref=f5e471]':
+                  - generic [ref=f5e472]:
+                    - generic [ref=f5e473]: phase6-reference.txt
+                    - generic [ref=f5e474]: Local document
+                  - strong [ref=f5e477]: "1"
+          - paragraph [ref=f5e478]: Local-only scan. Online search was not enabled.
+          - generic [ref=f5e479]:
+            - heading "Understand Your Results" [level=3] [ref=f5e480]
+            - paragraph [ref=f5e481]: This summary describes only the saved report data. Similarity identifies text overlap for review; it does not establish who wrote the text or prove plagiarism.
+            - list [ref=f5e482]:
+              - listitem [ref=f5e483]: The local comparison found 1 exact and 0 approximate matching passage in other documents in your account. Open each card and review both passages.
+              - listitem [ref=f5e484]: "Locally, 2 passages were analyzed: 1 had a detected match and 1 had no detected local match. 0 eligible passages were not analyzed."
+              - listitem [ref=f5e485]: No unconfirmed possible-source entries are stored in this report.
+              - listitem [ref=f5e486]: Online source discovery was not requested; this report covers local documents only.
+            - paragraph [ref=f5e487]: "Practical next steps: compare each highlighted passage with its source, verify that the context is relevant, and add or correct citations where you used another author's wording or ideas. Similar wording can also occur in quotations, common phrases, or independently written text."
+            - paragraph [ref=f5e488]: A similarity report alone is not a definitive judgment of plagiarism. Review the source, context, attribution, and your institution's rules.
+          - generic [ref=f5e489]:
+            - heading "Matching passages" [level=3] [ref=f5e490]
+            - generic [ref=f5e491]:
+              - generic [ref=f5e492]:
+                - generic [ref=f5e493]: Search passages and sources
+                - searchbox "Search matching passages, source titles, and domains" [ref=f5e494]
+              - generic [ref=f5e495]:
+                - generic [ref=f5e496]: Source
+                - combobox "Filter matching passages by source" [ref=f5e497]:
+                  - option "All sources" [selected]
+                  - option "Local matches"
+                  - option "Online matches"
+              - generic [ref=f5e498]:
+                - generic [ref=f5e499]: Match type
+                - combobox "Filter matching passages by match type" [ref=f5e500]:
+                  - option "All match types" [selected]
+                  - option "Exact matches"
+                  - option "Approximate matches"
+              - generic [ref=f5e501]:
+                - generic [ref=f5e502]: Sort matches
+                - combobox "Sort matching passages" [ref=f5e503]:
+                  - option "Report order" [selected]
+                  - option "Similarity score unavailable" [disabled]
+              - button "Clear filters" [ref=f5e504] [cursor=pointer]
+            - paragraph [ref=f5e505]: Showing 1 of 1 confirmed matching passages. Overall report totals above are unchanged.
+            - group [ref=f5e507]:
+              - generic "Exact match Local document phase6-reference.txt View passages +" [ref=f5e508] [cursor=pointer]:
+                - generic [ref=f5e509]: Exact match
+                - generic [ref=f5e510]: Local document
+                - strong [ref=f5e511]: phase6-reference.txt
+                - generic [ref=f5e512]: View passages
+                - text: +
+            - paragraph
+          - paragraph [ref=f5e513]: Eligible passages contain at least five words. Exact-word coverage is the number of words in passages with an exact match divided by all words in the analyzed passages. Approximate-only coverage uses the same denominator and counts words in passages with an approximate match but no exact match; it is reported separately and is not added to exact-word coverage. Approximate matches require word-set Jaccard overlap of at least 0.78. Exact matching uses Unicode NFKC, case-folding, and whitespace normalization. At most 300 passages from the selected document are analyzed. Local comparison includes all other owned documents with extracted text, but is limited to the first 1,000 source sentences per document; reports disclose when a document was truncated. Online search, when explicitly enabled, searches at most four distinctive passages.
+          - paragraph [ref=f5e514]: Text similarity does not by itself prove plagiarism. Review the matching passages and sources manually.
+      - generic [ref=f5e313]:
+        - heading "Previous reports" [level=2] [ref=f5e314]
+        - button "Refresh reports" [ref=f5e315] [cursor=pointer]
+      - generic [ref=f5e316]:
+        - generic [ref=f5e317]:
+          - generic [ref=f5e318]: Search scan names
+          - searchbox "Search scan names" [ref=f5e319]
+        - generic [ref=f5e320]:
+          - generic [ref=f5e321]: Scan status
+          - combobox "Scan status" [ref=f5e322]:
+            - option "All statuses" [selected]
+            - option "Queued"
+            - option "Scanning"
+            - option "Searching online"
+            - option "Completed"
+            - option "Completed with warnings"
+            - option "Failed"
+        - generic [ref=f5e323]:
+          - generic [ref=f5e324]: Sort loaded scans
+          - combobox "Sort loaded scans" [ref=f5e325]:
+            - option "Newest first" [selected]
+            - option "Local match count"
+            - option "Total match count"
+        - button "Clear history filters" [ref=f5e326] [cursor=pointer]
+      - paragraph [ref=f5e327]: Showing 1 of 1 loaded scans. Search, status, and sorting apply to the loaded pages only.
+      - generic [ref=f5e328]:
+        - paragraph [ref=f5e329]: Select two scans of the same document to compare their saved results. Changes describe scan observations, not originality.
+        - generic [ref=f5e330]: Select exactly two scans of the same document.
+        - button "Compare selected scans" [disabled] [ref=f5e331]
+      - generic [ref=f5e332]:
+        - generic [ref=f5e333] [cursor=pointer]:
+          - generic [ref=f5e334]:
+            - strong [ref=f5e335]: phase6-draft.txt
+            - generic [ref=f5e336]: 10/20/2026, 12:16:56 AM | completed
+            - generic [ref=f5e337]: 32 analyzed words · 0 locally unchecked passages
+          - generic [ref=f5e338]: 1 local exact / 0 local approximate / Unavailable online exact / Unavailable online approximate
+          - button "View report" [active] [ref=f5e339]
+          - generic [ref=f5e340]:
+            - checkbox "Select scan 10/20/2026, 12:16:56 AM for comparison" [ref=f5e341]
+            - generic [ref=f5e342]: Compare
+        - text: ▤

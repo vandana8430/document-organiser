@@ -1,0 +1,261 @@
+- generic [ref=f1e2]:
+  - complementary [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - generic [ref=f1e5]: 📁
+      - text: SmartFiles
+    - generic [ref=f1e6]: WORKSPACE
+    - navigation "Workspace" [ref=f1e7]:
+      - button "▦ Dashboard" [ref=f1e8] [cursor=pointer]
+      - button "📄 My Documents" [ref=f1e9] [cursor=pointer]
+      - button "⬆ Upload Documents" [ref=f1e10] [cursor=pointer]
+      - button "⌕ Search" [ref=f1e11] [cursor=pointer]
+      - button "✧ AI Assistant" [ref=f1e12] [cursor=pointer]
+      - button "🧩 Duplicate Finder" [ref=f1e13] [cursor=pointer]
+      - button "⇄ Document Comparison" [ref=f1e14] [cursor=pointer]
+      - button "⌕ Plagiarism Checker" [ref=f1e15] [cursor=pointer]
+      - button "◉ File Compressor" [ref=f1e16] [cursor=pointer]
+      - button "◈ Storage Optimizer" [ref=f1e17] [cursor=pointer]
+    - generic [ref=f1e18]:
+      - generic [ref=f1e19]: ACCOUNT
+      - button "↪ Sign out" [ref=f1e20] [cursor=pointer]
+      - generic [ref=f1e21]:
+        - generic [ref=f1e22]: L
+        - generic [ref=f1e23]:
+          - strong [ref=f1e24]: lvandana608@gmail.com
+          - text: Personal workspace
+  - main [ref=f1e25]:
+    - generic [ref=f1e26]:
+      - generic [ref=f1e27]:
+        - heading "Dashboard" [level=2] [ref=f1e28]
+        - generic [ref=f1e29]: Your intelligent document workspace
+      - generic [ref=f1e30]:
+        - generic [ref=f1e31]:
+          - searchbox "Search documents by filename, topic, tag, or content" [ref=f1e32]
+          - generic "Search filters" [ref=f1e33]:
+            - combobox "Filter by category" [ref=f1e34]:
+              - option "All categories" [selected]
+              - option "Education & Assignments"
+              - option "Career & Resumes"
+              - option "Certificates"
+              - option "Project Reports"
+              - option "Technical Notes"
+              - option "Financial Documents"
+              - option "Presentations"
+              - option "Images & Scanned Documents"
+              - option "Other Documents"
+            - combobox "Filter by file type" [ref=f1e35]:
+              - option "All file types" [selected]
+              - option "PDF"
+              - option "DOCX"
+              - option "TXT"
+              - option "CSV"
+              - option "XLSX"
+              - option "PPTX"
+              - option "PNG"
+              - option "JPG"
+              - option "JPEG"
+            - searchbox "Filter by tag" [ref=f1e36]
+            - generic [ref=f1e37]:
+              - text: From
+              - textbox "Uploaded from date" [ref=f1e38]
+            - generic [ref=f1e39]:
+              - text: To
+              - textbox "Uploaded through date" [ref=f1e40]
+        - button "Open upload documents" [ref=f1e41] [cursor=pointer]: + Upload
+    - generic [ref=f1e42]:
+      - generic [ref=f1e43]:
+        - generic [ref=f1e44]:
+          - heading "Welcome to SmartFiles 👋" [level=1] [ref=f1e45]
+          - paragraph [ref=f1e46]: Keep your documents organized and find what you need faster.
+        - generic [ref=f1e47]: 📚
+      - generic [ref=f1e48]:
+        - generic [ref=f1e49]:
+          - generic [ref=f1e50]:
+            - generic [ref=f1e51]: Total Documents
+            - generic [ref=f1e52]: 📁
+          - heading "21" [level=3] [ref=f1e53]
+          - paragraph [ref=f1e54]: Documents in your workspace
+        - generic [ref=f1e55]:
+          - generic [ref=f1e56]:
+            - generic [ref=f1e57]: PDF Files
+            - generic [ref=f1e58]: 📕
+          - heading "3" [level=3] [ref=f1e59]
+          - paragraph [ref=f1e60]: PDF documents
+        - generic [ref=f1e61]:
+          - generic [ref=f1e62]:
+            - generic [ref=f1e63]: Word Files
+            - generic [ref=f1e64]: 📝
+          - heading "5" [level=3] [ref=f1e65]
+          - paragraph [ref=f1e66]: Word documents
+        - generic [ref=f1e67]:
+          - generic [ref=f1e68]:
+            - generic [ref=f1e69]: Other Files
+            - generic [ref=f1e70]: 🖼️
+          - heading "13" [level=3] [ref=f1e71]
+          - paragraph [ref=f1e72]: Images and other formats
+      - generic [ref=f1e73]:
+        - generic [ref=f1e74]:
+          - generic [ref=f1e75]:
+            - generic [ref=f1e76]: Processed
+            - generic [ref=f1e77]: OK
+          - heading "0" [level=3] [ref=f1e78]
+          - paragraph [ref=f1e79]: Documents with searchable text
+        - generic [ref=f1e80]:
+          - generic [ref=f1e81]:
+            - generic [ref=f1e82]: Needs attention
+            - generic [ref=f1e83]: "!"
+          - heading "0" [level=3] [ref=f1e84]
+          - paragraph [ref=f1e85]: Extraction failures or no readable text
+        - generic [ref=f1e86]:
+          - generic [ref=f1e87]:
+            - generic [ref=f1e88]: Exact duplicate groups
+            - generic [ref=f1e89]: HASH
+          - heading "0" [level=3] [ref=f1e90]
+          - paragraph [ref=f1e91]: Identical file contents
+        - generic [ref=f1e92]:
+          - generic [ref=f1e93]:
+            - generic [ref=f1e94]: Potential near-duplicates
+            - generic [ref=f1e95]: TEXT
+          - heading "0" [level=3] [ref=f1e96]
+          - paragraph [ref=f1e97]: Similar extracted text
+      - heading "Browse categories" [level=2] [ref=f1e99]
+      - generic [ref=f1e100]:
+        - button "📕 PDF Documents View PDF files" [ref=f1e101] [cursor=pointer]:
+          - generic [ref=f1e102]: 📕
+          - strong [ref=f1e103]: PDF Documents
+          - text: View PDF files
+        - button "📝 Word Documents View Word files" [ref=f1e104] [cursor=pointer]:
+          - generic [ref=f1e105]: 📝
+          - strong [ref=f1e106]: Word Documents
+          - text: View Word files
+        - button "🖼️ Images View image files" [ref=f1e107] [cursor=pointer]:
+          - generic [ref=f1e108]: 🖼️
+          - strong [ref=f1e109]: Images
+          - text: View image files
+        - button "📂 Other Files View other formats" [ref=f1e110] [cursor=pointer]:
+          - generic [ref=f1e111]: 📂
+          - strong [ref=f1e112]: Other Files
+          - text: View other formats
+      - generic [ref=f1e114]:
+        - heading "Workspace analytics" [level=2] [ref=f1e115]
+        - paragraph [ref=f1e116]: Interactive metrics from your documents and actual compression results.
+      - region "Dashboard filters" [ref=f1e117]:
+        - generic [ref=f1e118]:
+          - generic [ref=f1e119]: Category
+          - combobox "Category" [ref=f1e120]:
+            - option "All categories" [selected]
+        - generic [ref=f1e121]:
+          - generic [ref=f1e122]: File type
+          - combobox "File type" [ref=f1e123]:
+            - option "All file types" [selected]
+        - generic [ref=f1e124]:
+          - generic [ref=f1e125]: From date
+          - textbox "From date" [ref=f1e126]
+        - generic [ref=f1e127]:
+          - generic [ref=f1e128]: To date
+          - textbox "To date" [ref=f1e129]
+        - button "Apply filters" [ref=f1e130] [cursor=pointer]
+      - generic [ref=f1e131]:
+        - heading "Documents by category" [level=3] [ref=f1e133]
+        - heading "Documents by file format" [level=3] [ref=f1e136]
+        - heading "Monthly uploads" [level=3] [ref=f1e139]
+        - heading "Document processing" [level=3] [ref=f1e141]
+      - heading "Storage and compression" [level=2] [ref=f1e144]
+      - generic [ref=f1e145]:
+        - generic [ref=f1e146]:
+          - generic [ref=f1e147]:
+            - generic [ref=f1e148]: Exact duplicate groups
+            - generic [ref=f1e149]: 📑
+          - heading "0" [level=3] [ref=f1e150]
+          - paragraph [ref=f1e151]: Within the selected document filters
+        - generic [ref=f1e152]:
+          - generic [ref=f1e153]:
+            - generic [ref=f1e154]: Potential near-duplicates
+            - generic [ref=f1e155]: DOC
+          - heading "0" [level=3] [ref=f1e156]
+          - paragraph [ref=f1e157]: Review suggestions, not identity claims
+        - generic [ref=f1e158]:
+          - generic [ref=f1e159]:
+            - generic [ref=f1e160]: Largest document
+            - generic [ref=f1e161]: MAX
+          - heading "—" [level=3] [ref=f1e162]
+          - paragraph [ref=f1e163]: No eligible document yet
+        - generic [ref=f1e164]:
+          - generic [ref=f1e165]:
+            - generic [ref=f1e166]: Compressible files
+            - generic [ref=f1e167]: ZIP
+          - heading "0" [level=3] [ref=f1e168]
+          - paragraph [ref=f1e169]: PDF and supported image formats
+      - generic [ref=f1e170]:
+        - generic [ref=f1e171]:
+          - heading "Recent documents" [level=2] [ref=f1e172]
+          - text: No sample documents loaded.
+        - generic [ref=f1e173]:
+          - button "Load Demo Documents" [ref=f1e174] [cursor=pointer]
+          - button "View all" [ref=f1e175] [cursor=pointer]
+      - generic [ref=f1e176]:
+        - button "Open SMARTFILES.pptx" [ref=f1e177] [cursor=pointer]:
+          - generic [ref=f1e178]: PPT
+          - generic [ref=f1e179]:
+            - button "SMARTFILES.pptx" [ref=f1e180]
+            - generic [ref=f1e181]: PPTX | Presentations | 10/16/2026, 7:50:15 PM | 1341.4 KB
+            - generic [ref=f1e182]:
+              - generic [ref=f1e183]: Research
+              - generic [ref=f1e184]: Project
+              - generic [ref=f1e185]: Architecture
+              - generic [ref=f1e186]: Implementation
+          - generic [ref=f1e187]:
+            - generic [ref=f1e188]: Presentations
+            - generic [ref=f1e189]: Text indexed
+        - button "Open Vandana L Resume.pdf" [ref=f1e190] [cursor=pointer]:
+          - generic [ref=f1e191]: PDF
+          - generic [ref=f1e192]:
+            - button "Vandana L Resume.pdf" [ref=f1e193]
+            - generic [ref=f1e194]: PDF | Career & Resumes | 10/15/2026, 2:50:15 PM | 146.2 KB
+            - generic [ref=f1e195]:
+              - generic [ref=f1e196]: Resume
+              - generic [ref=f1e197]: Skills
+              - generic [ref=f1e198]: Experience
+              - generic [ref=f1e199]: Education
+          - generic [ref=f1e200]:
+            - generic [ref=f1e201]: Career & Resumes
+            - generic [ref=f1e202]: Text indexed
+        - button "Open team_meeting_notes.docx" [ref=f1e203] [cursor=pointer]:
+          - generic [ref=f1e204]: DOC
+          - generic [ref=f1e205]:
+            - button "team_meeting_notes.docx" [ref=f1e206]
+            - generic [ref=f1e207]: DOCX | Project Reports | 10/15/2026, 2:13:52 PM | 35.9 KB
+            - generic [ref=f1e208]:
+              - generic [ref=f1e209]: Project
+              - generic [ref=f1e210]: Meeting
+              - generic [ref=f1e211]: Report
+              - generic [ref=f1e212]: Notes
+          - generic [ref=f1e213]:
+            - generic [ref=f1e214]: Project Reports
+            - generic [ref=f1e215]: Text indexed
+        - button "Open team_meeting_notes.docx" [ref=f1e216] [cursor=pointer]:
+          - generic [ref=f1e217]: DOC
+          - generic [ref=f1e218]:
+            - button "team_meeting_notes.docx" [ref=f1e219]
+            - generic [ref=f1e220]: DOCX | Project Reports | 10/15/2026, 1:49:54 PM | 35.9 KB
+            - generic [ref=f1e221]:
+              - generic [ref=f1e222]: Project
+              - generic [ref=f1e223]: Meeting
+              - generic [ref=f1e224]: Report
+              - generic [ref=f1e225]: Notes
+          - generic [ref=f1e226]:
+            - generic [ref=f1e227]: Project Reports
+            - generic [ref=f1e228]: Text indexed
+        - button "Open python_study_guide.pdf" [ref=f1e229] [cursor=pointer]:
+          - generic [ref=f1e230]: PDF
+          - generic [ref=f1e231]:
+            - button "python_study_guide.pdf" [ref=f1e232]
+            - generic [ref=f1e233]: PDF | Technical Notes | 10/15/2026, 1:49:26 PM | 1.6 KB
+            - generic [ref=f1e234]:
+              - generic [ref=f1e235]: Project
+              - generic [ref=f1e236]: Python
+              - generic [ref=f1e237]: Study
+              - generic [ref=f1e238]: Guide
+          - generic [ref=f1e239]:
+            - generic [ref=f1e240]: Technical Notes
+            - generic [ref=f1e241]: Text indexed

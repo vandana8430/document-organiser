@@ -1,0 +1,93 @@
+%PDF-1.4
+%SmartFiles fictional samples
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1432 >>
+stream
+BT
+/F1 10 Tf
+48 756 Td
+14 TL
+/F1 16 Tf
+(SMARTFILES | FICTIONAL SAMPLE DOCUMENT) Tj
+/F1 10 Tf
+T*
+() Tj
+T*
+(PROJECT REPORT: WATERWISE SMART IRRIGATION) Tj
+T*
+() Tj
+T*
+(Prepared by fictional team Cedar Lab for a classroom demonstration. The project explores) Tj
+T*
+(low-cost soil monitoring for a community garden.) Tj
+T*
+() Tj
+T*
+(Problem: Garden volunteers water on a fixed schedule even after rain. This can waste) Tj
+T*
+(water and leave some planting beds too wet.) Tj
+T*
+() Tj
+T*
+(Approach: A capacitive soil-moisture sensor sends a reading to a small gateway every) Tj
+T*
+(fifteen minutes. The dashboard stores readings and suggests irrigation only when) Tj
+T*
+(moisture falls below the selected threshold.) Tj
+T*
+() Tj
+T*
+(Prototype: Four fictional plots were monitored for six weeks. The demonstration dataset) Tj
+T*
+(showed a median 18 percent reduction in scheduled watering compared with the baseline) Tj
+T*
+(calendar.) Tj
+T*
+() Tj
+T*
+(Evaluation: Sensor placement, calibration, and shaded beds affected the readings. The) Tj
+T*
+(result is a classroom prototype, not a field-validated agricultural product.) Tj
+T*
+() Tj
+T*
+(Next steps: Add a rain gauge, log calibration changes, and let a gardener confirm each) Tj
+T*
+(irrigation recommendation.) Tj
+T*
+() Tj
+T*
+(Sample data notice: Metrics, names, and observations are fictional and intended only for) Tj
+T*
+(demonstrating search and document processing.) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000039 00000 n 
+0000000088 00000 n 
+0000000145 00000 n 
+0000000215 00000 n 
+0000000341 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1825
+%%EOF

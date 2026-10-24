@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.venv311/
+venv/
+env/
+.env
+/services/key.env
+*.log
+*.wav
+backups/
+data.db
+uploads/*

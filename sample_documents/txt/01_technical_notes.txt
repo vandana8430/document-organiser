@@ -1,0 +1,11 @@
+SMARTFILES FICTIONAL SAMPLE | Technical Notes: WaterWise Sensor Pipeline
+
+The prototype gateway receives JSON readings from fictional sensor IDs such as plot-c-04. Each reading contains sensor_id, captured_at, moisture_percent, battery_percent, and calibration_version.
+
+Baseline flow: Soil moisture readings are sent every fifteen minutes. The dashboard flags plots below 28 percent so a volunteer can review the plot before watering. This threshold is a sample setting, not agricultural advice.
+
+Validation checks: reject a missing sensor_id, reject percentages outside 0 through 100, retain the original captured_at timestamp, and report stale readings separately from low readings.
+
+Search demonstration terms: calibration, sensor reliability, water conservation, missing data, and dashboard threshold.
+
+The sample readings and design are fictional and contain no real operational data.

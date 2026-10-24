@@ -1,0 +1,304 @@
+- generic [ref=e27]:
+  - complementary [ref=e28]:
+    - generic [ref=e29]:
+      - generic [ref=e30]: 📁
+      - text: SmartFiles
+    - generic [ref=e31]: WORKSPACE
+    - navigation "Workspace" [ref=e32]:
+      - button "▦ Dashboard" [ref=e33] [cursor=pointer]
+      - button "📄 My Documents" [ref=e34] [cursor=pointer]
+      - button "⬆ Upload Documents" [ref=e35] [cursor=pointer]
+      - button "⌕ Search" [ref=e36] [cursor=pointer]
+      - button "✧ AI Assistant" [ref=e37] [cursor=pointer]
+      - button "🧩 Duplicate Finder" [ref=e38] [cursor=pointer]
+      - button "⇄ Document Comparison" [ref=e39] [cursor=pointer]
+      - button "⌕ Plagiarism Checker" [ref=e40] [cursor=pointer]
+      - button "◉ File Compressor" [ref=e41] [cursor=pointer]
+      - button "◈ Storage Optimizer" [ref=e42] [cursor=pointer]
+    - generic [ref=e43]:
+      - generic [ref=e44]: ACCOUNT
+      - button "↪ Sign out" [ref=e45] [cursor=pointer]
+      - generic [ref=e46]:
+        - generic [ref=e47]: U
+        - generic [ref=e48]:
+          - strong [ref=e49]: ui-checker-test@example.test
+          - text: Personal workspace
+  - main [ref=e50]:
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - heading "Plagiarism Checker" [level=2] [ref=e283]
+        - generic [ref=e54]: Your intelligent document workspace
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - searchbox "Search documents by filename, topic, tag, or content" [ref=e57]
+          - generic "Search filters" [ref=e58]:
+            - combobox "Filter by category" [ref=e59]:
+              - option "All categories" [selected]
+              - option "Education & Assignments"
+              - option "Career & Resumes"
+              - option "Certificates"
+              - option "Project Reports"
+              - option "Technical Notes"
+              - option "Financial Documents"
+              - option "Presentations"
+              - option "Images & Scanned Documents"
+              - option "Other Documents"
+            - combobox "Filter by file type" [ref=e60]:
+              - option "All file types" [selected]
+              - option "PDF"
+              - option "DOCX"
+              - option "TXT"
+              - option "CSV"
+              - option "XLSX"
+              - option "PPTX"
+              - option "PNG"
+              - option "JPG"
+              - option "JPEG"
+            - searchbox "Filter by tag" [ref=e61]
+            - generic [ref=e62]:
+              - text: From
+              - textbox "Uploaded from date" [ref=e63]
+            - generic [ref=e64]:
+              - text: To
+              - textbox "Uploaded through date" [ref=e65]
+        - button "Open upload documents" [ref=e66] [cursor=pointer]: + Upload
+    - generic [ref=e284]:
+      - generic [ref=e286]:
+        - generic [ref=e287]: DOCUMENT INTEGRITY
+        - heading "Plagiarism Checker" [level=2] [ref=e288]
+        - paragraph [ref=e289]: Check your document for matching text in your stored documents and discover possible online sources.
+      - region [ref=e290]:
+        - generic [ref=e291]:
+          - generic [aria-hidden] [ref=e292]: ⌕
+          - generic [ref=e293]:
+            - heading "Start a document review" [level=3] [ref=e294]
+            - paragraph [ref=e295]: Choose an uploaded document or add a PDF, DOCX, or TXT file.
+        - generic [ref=e296]:
+          - generic [ref=e297]:
+            - generic [ref=e298]:
+              - generic [ref=e299]: Choose a document
+              - combobox "Choose a document" [ref=e300]:
+                - option "Select a document"
+                - option "02_meeting_notes.txt" [selected]
+                - option "01_technical_notes.txt"
+            - generic [ref=e301]:
+              - generic [ref=e302]:
+                - generic [ref=e303]: Or upload a PDF, DOCX, or TXT
+                - button "Or upload a PDF, DOCX, or TXT" [ref=e304]
+              - button "Upload document" [ref=e305] [cursor=pointer]
+            - paragraph [ref=e306]: Local comparison checks text against your other stored documents.
+            - generic [ref=e503]: Uploaded 02_meeting_notes.txt; it is selected and ready to scan.
+          - generic [ref=e307]:
+            - generic [ref=e308] [cursor=pointer]:
+              - checkbox "Online Source Discovery (Firecrawl) Search selected passages online and compare any retrieved page text. Your complete document is not sent." [ref=e309]
+              - generic [ref=e310]:
+                - strong [ref=e311]: Online Source Discovery (Firecrawl)
+                - generic [ref=e312]: Search selected passages online and compare any retrieved page text. Your complete document is not sent.
+            - paragraph [ref=e313]: Online discovery looks for possible web sources; retrieved text is checked before a match is confirmed. It requires Firecrawl configuration. Local comparison still runs if online search is unavailable.
+        - generic [ref=e314]:
+          - button "Check for Plagiarism" [ref=e315] [cursor=pointer]:
+            - generic [aria-hidden] [ref=e316]: ⌕
+          - generic [ref=e318]: Text similarity is a review signal, not proof of plagiarism.
+        - generic [ref=e319]:
+          - generic [ref=e364]:
+            - generic [ref=e365]:
+              - generic [ref=e366]: SCAN REPORT
+              - heading "01_technical_notes.txt" [level=3] [ref=e367]
+              - paragraph [ref=e368]: Scanned 10/21/2026, 10:58:49 PM
+            - generic [ref=e369]:
+              - generic [ref=e370]: Complete with warnings
+              - button "Download PDF report for 01_technical_notes.txt" [ref=e371] [cursor=pointer]: Download PDF Report
+          - generic [ref=e372]:
+            - 'article "Document Analyzed: 01_technical_notes.txt" [ref=e373]':
+              - generic [ref=e374]:
+                - generic [ref=e375]: ▤
+                - generic [ref=e376]: Document Analyzed
+              - strong [ref=e377]: 01_technical_notes.txt
+              - generic [ref=e378]: Selected document
+            - 'article "Words Analyzed: 116" [ref=e379]':
+              - generic [ref=e380]:
+                - generic [ref=e381]: Aa
+                - generic [ref=e382]: Words Analyzed
+              - strong [ref=e383]: "116"
+              - generic [ref=e384]: Words included in local comparison
+            - 'article "Exact Match Coverage: 0%" [ref=e385]':
+              - generic [ref=e386]:
+                - generic [ref=e387]: ≡
+                - generic [ref=e388]: Exact Match Coverage
+              - strong [ref=e389]: 0%
+              - generic [ref=e390]: Words in locally exact-matched passages
+            - 'article "Approximate Match Coverage: 0%" [ref=e391]':
+              - generic [ref=e392]:
+                - generic [ref=e393]: ≈
+                - generic [ref=e394]: Approximate Match Coverage
+              - strong [ref=e395]: 0%
+              - generic [ref=e396]: Approximate-only local matches
+            - 'article "Potential Online Sources Found: 10" [ref=e397]':
+              - generic [ref=e398]:
+                - generic [ref=e399]: ↗
+                - generic [ref=e400]: Potential Online Sources Found
+              - strong [ref=e401]: "10"
+              - generic [ref=e402]: Unconfirmed sources; not text matches
+            - 'article "Scan Status: Complete with warnings" [ref=e403]':
+              - generic [ref=e404]:
+                - generic [ref=e405]: ◷
+                - generic [ref=e406]: Scan Status
+              - strong [ref=e407]: Complete with warnings
+              - generic [ref=e408]: Local comparison + Firecrawl requested
+          - paragraph [ref=e409]: Firecrawl Search source discovery was incomplete; see the messages below. Local comparison still ran.
+          - list [ref=e410]:
+            - listitem [ref=e411]: Online search covered 4 of 9 analyzed passages; 5 were not searched.
+            - listitem [ref=e412]: Firecrawl Search timed out for one passage; local comparison remains available.
+            - listitem [ref=e413]: Firecrawl Search timed out for one passage; local comparison remains available.
+          - generic [ref=e414]:
+            - heading "Understand Your Results" [level=3] [ref=e415]
+            - paragraph [ref=e416]: Use these results as review guidance. Text similarity alone does not prove plagiarism.
+            - list [ref=e417]:
+              - listitem [ref=e418]: "Exact matches: text that matches a passage in a comparison source."
+              - listitem [ref=e419]: "Approximate matches: text that is similar according to this application's comparison method."
+              - listitem [ref=e420]: "Possible sources: pages found online that have not been confirmed by comparing their text."
+              - listitem [ref=e421]: "Unchecked text: 0 eligible passages were not included in local analysis; 5 passages were not searched online."
+              - listitem [ref=e422]: "Online search unavailable or incomplete: Firecrawl could not finish source discovery; local comparison results may still be available."
+            - group [ref=e423]:
+              - generic "More about this scan" [ref=e424] [cursor=pointer]
+            - paragraph [ref=e425]: "Practical next steps: compare each highlighted passage with its source, verify that the context is relevant, and add or correct citations where you used another author's wording or ideas. Similar wording can also occur in quotations, common phrases, or independently written text."
+            - paragraph [ref=e426]: A similarity report alone is not a definitive judgment of plagiarism. Review the source, context, attribution, and your institution's rules.
+          - generic [ref=e427]:
+            - heading "Matching passages" [level=3] [ref=e428]
+            - tablist "Filter report results" [ref=e429]:
+              - tab "All Results" [ref=e430] [cursor=pointer]
+              - tab "Possible Sources" [selected] [ref=e431] [cursor=pointer]
+            - generic [ref=e432]:
+              - generic [ref=e433]:
+                - generic [ref=e434]: Search passages and sources
+                - searchbox "Search matching passages, source titles, and domains" [ref=e435]
+              - generic [ref=e436]:
+                - generic [ref=e437]: Match type
+                - combobox "Filter matching passages by match type" [ref=e438]:
+                  - option "All match types" [selected]
+                  - option "Exact matches"
+                  - option "Approximate matches"
+              - generic [ref=e439]:
+                - generic [ref=e440]: Sort matches
+                - combobox "Sort matching passages" [ref=e441]:
+                  - option "Report order" [selected]
+                  - option "Similarity score unavailable" [disabled]
+              - button "Clear filters" [ref=e442] [cursor=pointer]
+            - paragraph
+            - paragraph [ref=e447]: Showing 10 of 10 possible sources (not confirmed matches).
+          - generic [ref=e448]:
+            - heading "Possible sources (not confirmed matches)" [level=3] [ref=e449]
+            - paragraph [ref=e450]: These are returned search results without a detected text match. A result or snippet alone does not confirm copied text.
+            - article [ref=e451]:
+              - link "HTTP JSON Sensor Data - Gude Systems GmbH" [ref=e452] [cursor=pointer]:
+                - /url: https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data
+              - generic [ref=e453]: wiki.gude-systems.com
+              - paragraph [ref=e454]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e455]: "# HTTP JSON Sensor Data Aus Gude Systems GmbH [Zur Navigation springen](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data#mw-head) [Zur Suche springen](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data#searchInput) ## Inhaltsverzeichnis - [1Preface](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data#Preface) - [2Getting data by HTTP](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data#Getting_data_by_HTTP) - [3Example JSON data](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data#Example_JSON_data) - [3.1sensor\\_descr](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data#sensor_descr) - [3.2sensor\\_values](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data#sensor_values) - [3.3sensor\\_descr / sensor\\_values](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data#sensor_descr_.2F_sensor_values) - [4Common sensor type IDs](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Data#Common_sensor_type_IDs) - [5check\\_gude.py in action](https://wiki.gude-systems.com/HTTP_JSON_Sensor_Da"
+            - article [ref=e456]:
+              - 'link "OGC SensorThings API Part 1: Sensing Version 1.1" [ref=e457] [cursor=pointer]':
+                - /url: https://docs.ogc.org/is/18-088/18-088.html
+              - generic [ref=e458]: docs.ogc.org
+              - paragraph [ref=e459]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e460]: "| | | --- | | | | **Open Geospatial Consortium** | | Submission Date: 2020-04-01 | | Approval Date: 2020-11-26 | | Publication Date: 2021-08-04 | | External identifier of this OGC® document: [http://www.opengis.net/doc/is/sensorthings/1.1](http://www.opengis.net/doc/is/sensorthings/1.1) | | URL for this OGC® document: [https://docs.ogc.org/is/18-088/18-088.html](https://docs.ogc.org/is/18-088/18-088.html) | | Additional Formats (informative): [![pdf](<Base64-Image-Removed>)](https://docs.ogc.org/is/18-088/18-088.pdf) | | Please refer to the [errata](https://docs.ogc.org/is/18-088/errata.html) for this document,<br>which may include some normative corrections. | | Internal reference number of this OGC® document: 18-088 | | Version: 1.1 | | Category: OGC® Implementation Standard | | Editors: Steve Liang, Tania Khalafbeigi, Hylke van der Schaaf | | | | --- | | **OGC SensorThings API Part 1: Sensing Version 1.1** | | | | --- | | **Copyright notice** | | Copyright © 2021 Open"
+            - article [ref=e461]:
+              - link "Variables for data transformations for API Gateway - AWS Documentation" [ref=e462] [cursor=pointer]:
+                - /url: https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html
+              - generic [ref=e463]: docs.aws.amazon.com
+              - paragraph [ref=e464]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e465]: "## Select your cookie preferences We use essential cookies and similar tools that are necessary to provide our site and services. We use performance cookies to collect anonymous statistics, so we can understand how customers use our site and make improvements. Essential cookies cannot be deactivated, but you can choose “Customize” or “Decline” to decline performance cookies. If you agree, AWS and approved third parties will also use cookies to provide useful site features, remember your preferences, and display relevant content, including relevant advertising. To accept or decline all non-essential cookies, choose “Accept” or “Decline.” To make more detailed choices, choose “Customize.” AcceptDeclineCustomize ## Customize cookie preferences We use cookies and similar tools (collectively, \"cookies\") for the following purposes. ### Essential Essential cookies are necessary to provide our site and services and cannot be deactivated. They are usually set in response to your actions"
+            - article [ref=e466]:
+              - link "JSON Tags and MQTT Example - Confluence Mobile - Tatsoft LLC" [ref=e467] [cursor=pointer]:
+                - /url: https://docs.tatsoft.com/display/FX/JSON+Tags+and+MQTT+Example
+              - generic [ref=e468]: docs.tatsoft.com
+              - paragraph [ref=e469]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e470]: "[![FrameworX 10.1](https://docs.tatsoft.com/download/attachments/176029766/FX?version=1&modificationDate=1755938871000&api=v2)](https://docs.tatsoft.com/display/FX/Home?src=sidebar \"FrameworX 10.1\") [FrameworX 10.1](https://docs.tatsoft.com/display/FX/Home?src=sidebar \"FrameworX 10.1\") ## Page tree - [Expand item Get Started](https://docs.tatsoft.com/display/FX/JSON+Tags+and+MQTT+Example) [Get Started](https://docs.tatsoft.com/display/FX/Get+Started?src=contextnavpagetreemode) - [Expand item Platform Overview](https://docs.tatsoft.com/display/FX/JSON+Tags+and+MQTT+Example) [Platform Overview](https://docs.tatsoft.com/display/FX/Platform+Overview?src=contextnavpagetreemode) - [Expand item AI Integration](https://docs.tatsoft.com/display/FX/JSON+Tags+and+MQTT+Example) [AI Integration](https://docs.tatsoft.com/display/FX/AI+Integration?src=contextnavpagetreemode) - [Expand item Modules](https://docs.tatsoft.com/display/FX/JSON+Tags+and+MQTT+Example) [Modules](https://docs.tatsof"
+            - article [ref=e471]:
+              - link "Gateway APIs | The Things Stack for LoRaWAN" [ref=e472] [cursor=pointer]:
+                - /url: https://www.thethingsindustries.com/docs/api/reference/grpc/gateway
+              - generic [ref=e473]: www.thethingsindustries.com
+              - paragraph [ref=e474]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e475]: "# Gateway APIs List of LoRaWAN® Gateway APIs. ## The `GatewayRegistry` service [\\#](https://www.thethingsindustries.com/docs/api/reference/grpc/gateway/\\#the-gatewayregistry-service) | Method | `GatewayRegistry.Create` | | Description | Create a new gateway. This also sets the given organization or user as<br>first collaborator with all possible rights. | | Request type | [`CreateGatewayRequest`](https://www.thethingsindustries.com/docs/api/reference/grpc/gateway/#message:CreateGatewayRequest) | | Response type | [`Gateway`](https://www.thethingsindustries.com/docs/api/reference/grpc/gateway/#message:Gateway) | | HTTP bindings | `POST``/api/v3/users/{collaborator.user_ids.user_id}/gateways`<br>`POST``/api/v3/organizations/{collaborator.organization_ids.organization_id}/gateways` | | Method | `GatewayRegistry.Get` | | Description | Get the gateway with the given identifiers, selecting the fields specified<br>in the field mask.<br>More or less fields may be returned, depending on the"
+            - article [ref=e476]:
+              - link "Challenges and Opportunities in Calibrating Low-Cost ... - PMC - NIH" [ref=e477] [cursor=pointer]:
+                - /url: https://pmc.ncbi.nlm.nih.gov/articles/PMC11175279
+              - generic [ref=e478]: pmc.ncbi.nlm.nih.gov
+              - paragraph [ref=e479]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e480]: "[Skip to main content](https://pmc.ncbi.nlm.nih.gov/articles/PMC11175279/#main-content) ![](https://cdn.ncbi.nlm.nih.gov/pmc/pd-medc-pmc-cloudpmc-viewer/production/9b1d9d87/var/data/static/img/icon-dot-gov.svg) **Official websites use .gov** A **.gov** website belongs to an official government organization in the United States. ![](https://cdn.ncbi.nlm.nih.gov/pmc/pd-medc-pmc-cloudpmc-viewer/production/9b1d9d87/var/data/static/img/icon-https.svg) **Secure .gov websites use HTTPS** A **lock** ( Lock Locked padlock icon ) or **https://** means you've safely connected to the .gov website. Share sensitive information only on official, secure websites. [Home](https://pmc.ncbi.nlm.nih.gov/ \"Home\") ![PMC search open icon](https://cdn.ncbi.nlm.nih.gov/pmc/pd-medc-pmc-cloudpmc-viewer/production/9b1d9d87/var/data/static/img/usa-icons/search.svg)![PMC search close ison](https://cdn.ncbi.nlm.nih.gov/pmc/pd-medc-pmc-cloudpmc-viewer/production/9b1d9d87/var/data/static/img/usa-icons/close.s"
+            - article [ref=e481]:
+              - link "A Guide to Maintaining and Calibrating Field-Installed Soil and ..." [ref=e482] [cursor=pointer]:
+                - /url: https://extension.arizona.edu/publication/guide-maintaining-and-calibrating-field-installed-soil-and-plant-moisture-sensors
+              - generic [ref=e483]: extension.arizona.edu
+              - paragraph [ref=e484]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e485]: "[Skip to main content](https://extension.arizona.edu/publication/guide-maintaining-and-calibrating-field-installed-soil-and-plant-moisture-sensors#content) Publication [verifiedPeer Reviewed](https://extension.arizona.edu/node/53) # A Guide to Maintaining and Calibrating Field-Installed Soil and Plant Moisture Sensors Authors [Diaa Elshikha](https://extension.arizona.edu/person/diaa-eldin-elshikha) Said Attalah Kelly Thorp Clinton Williams Dong Wang Isaya Kisekka Shaddy Alshraah Aaron Dodge Andrew Dull Bruno Quanquin Anna Barr Elsayed Ahmed Elsadek **Publication Date**: March 2026 \\| **Publication Number**: az2193 [Download PDF](http://hdl.handle.net/10150/679915) Soil-and plant-based moisture sensors enhance irrigation management and water conservation (Elsadek, 2018) by offering real-time data on soil and plant water status. However, their effectiveness in commercial field conditions is often restrained by design limitations, battery failures, probe corrosion, miner"
+            - article [ref=e486]:
+              - link "How to Overcome Data Uncertainty in Water Quality Monitoring - YSI" [ref=e487] [cursor=pointer]:
+                - /url: https://www.ysi.com/ysi-blog/water-blogged-blog/2023/09/how-to-overcome-data-uncertainty-in-water-quality-monitoring?srsltid=AU7gw4X7okcabgObbRougNPJlXX_AMojSxydKFh9PdIYuvx5440RtsE5
+              - generic [ref=e488]: www.ysi.com
+              - paragraph [ref=e489]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e490]: "- be\\_ixf; dotnet\\_sdk; dotnet\\_sdk\\_1.4.12 - 31 ms - iy\\_2026; im\\_10; id\\_21; ih\\_10; imh\\_29; i\\_epoch:1792603766130 - ixf-compiler; ixf-compiler\\_1.0.0.0 - py\\_2026; pm\\_10; pd\\_10; ph\\_02; pmh\\_19; p\\_epoch:1791623941764 - bec-built-in; bec-built-in\\_1.0.0; bodystr - pn\\_tstr:Wed Oct 21 10:29:26 PDT 2026; pn\\_epoch:1792603766130 - 0 ms - [⌂](https://www.ysi.com/) ![email sharing button](https://platform-cdn.sharethis.com/img/email.svg) ![facebook sharing button](https://platform-cdn.sharethis.com/img/facebook.svg) ![twitter sharing button](https://platform-cdn.sharethis.com/img/twitter.svg) ![linkedin sharing button](https://platform-cdn.sharethis.com/img/linkedin.svg) ![sharethis sharing button](https://platform-cdn.sharethis.com/img/sharethis.svg) ![](https://www.ysi.com/Image%20Library/Blog/Data-Uncertainty-Thumbnail.jpg) ## Overcoming Water Quality Monitoring Data Uncertainty ![](https://video.ysi.com/64968555/86830917/318153af5a7a85f18ab7b5cc16bc8533/large/webinar-e"
+            - article [ref=e491]:
+              - link "(PDF) Challenges and Opportunities in Calibrating Low-Cost ..." [ref=e492] [cursor=pointer]:
+                - /url: https://www.researchgate.net/publication/381164384_Challenges_and_Opportunities_in_Calibrating_Low-Cost_Environmental_Sensors
+              - generic [ref=e493]: www.researchgate.net
+              - paragraph [ref=e494]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e495]: "ArticlePDF AvailableLiterature Review # Challenges and Opportunities in Calibrating Low-Cost Environmental Sensors [![MDPI](https://i1.rgstatic.net/partner-brand/asset/AS:11431281238468984@1713953143253/logo)\\\\ \\\\ Sensors](https://www.researchgate.net/journal/Sensors-1424-8220) - June 2024 - 24(11):22 DOI: [10.3390/s24113650](https://doi.org/10.3390/s24113650?urlappend=%3Futm_source%3Dresearchgate.net%26utm_medium%3Darticle) - License - [CC BY 4.0](https://www.researchgate.net/deref/https%3A%2F%2Fcreativecommons.org%2Flicenses%2Fby%2F4.0%2F) Authors: [![Sudha Rani N N V at Atlantic Technological University](https://i1.rgstatic.net/ii/profile.image/662068281737217-1534860787847_Q128/Sudha-N-N-V.jpg)](https://www.researchgate.net/profile/Sudha-N-N-V) [Sudha Rani N N V](https://www.researchgate.net/profile/Sudha-N-N-V) - [Atlantic Technological University](https://www.researchgate.net/institution/Atlantic-Technological-University) [![Ismaila Abimbola at Atlantic Technological Un"
+            - article [ref=e496]:
+              - link "What Is Sensor Calibration And Why It Matters - Bota Systems" [ref=e497] [cursor=pointer]:
+                - /url: https://botasys.com/post/sensor-calibration
+              - generic [ref=e498]: botasys.com
+              - paragraph [ref=e499]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=e500]: "[Skip to content](https://botasys.com/post/sensor-calibration/#content) - ![Picture of Lefteris Kotsonis](https://botasys.com/wp-content/uploads/1571227459240-96x96.jpg)Author: Lefteris Kotsonis # What Is Sensor Calibration And Why It Matters Published: August 20, 2024 Updated: October 16, 2026 SHARE: ### Table of Contents - [What is Sensor Calibration?](https://botasys.com/post/sensor-calibration/#elementor-toc__heading-anchor-0) - [Why sensor calibration matters](https://botasys.com/post/sensor-calibration/#elementor-toc__heading-anchor-1) - [Impact of Uncalibrated Sensors](https://botasys.com/post/sensor-calibration/#elementor-toc__heading-anchor-2) - [How to Calibrate Sensors](https://botasys.com/post/sensor-calibration/#elementor-toc__heading-anchor-3) - [How often should you calibrate a sensor?](https://botasys.com/post/sensor-calibration/#elementor-toc__heading-anchor-4) - [Calibrating force and torque sensors](https://botasys.com/post/sensor-calibration/#elementor-t"
+          - group [ref=e501]:
+            - generic "How the analysis works" [ref=e502] [cursor=pointer]
+      - generic [ref=e324]:
+        - heading "Previous reports" [level=2] [ref=e325]
+        - button "Refresh reports" [ref=e326] [cursor=pointer]
+      - generic [ref=e327]:
+        - generic [ref=e328]:
+          - generic [ref=e329]: Search scan names
+          - searchbox "Search scan names" [ref=e330]
+        - generic [ref=e331]:
+          - generic [ref=e332]: Scan status
+          - combobox "Scan status" [ref=e333]:
+            - option "All statuses" [selected]
+            - option "Queued"
+            - option "Scanning"
+            - option "Searching online"
+            - option "Completed"
+            - option "Completed with warnings"
+            - option "Failed"
+        - generic [ref=e334]:
+          - generic [ref=e335]: Sort loaded scans
+          - combobox "Sort loaded scans" [ref=e336]:
+            - option "Newest first" [selected]
+            - option "Local match count"
+            - option "Total match count"
+        - button "Clear history filters" [ref=e337] [cursor=pointer]
+      - paragraph [ref=e338]: Showing 2 of 2 loaded scans. Search, status, and sorting apply to the loaded pages only.
+      - generic [ref=e339]:
+        - paragraph [ref=e340]: Select two scans of the same document to compare their saved results. Changes describe scan observations, not originality.
+        - generic [ref=e341]: Select exactly two scans of the same document.
+        - button "Compare selected scans" [disabled] [ref=e342]
+      - generic [ref=e343]:
+        - generic [ref=e344] [cursor=pointer]:
+          - generic [ref=e345]:
+            - strong [ref=e346]: 01_technical_notes.txt
+            - generic [ref=e347]: 10/21/2026, 10:58:49 PM | completed_with_warnings
+            - generic [ref=e348]: 116 analyzed words · 0 locally unchecked passages · 10 online pages checked · 5 online unchecked passages
+          - generic [ref=e349]: 0 local exact / 0 local approximate / 0 online exact / 0 online approximate
+          - button "View report" [ref=e350]
+          - generic [ref=e351]:
+            - checkbox "Select scan 10/21/2026, 10:58:49 PM for comparison" [ref=e352]
+            - generic [ref=e353]: Compare
+        - generic [ref=e354] [cursor=pointer]:
+          - generic [ref=e355]:
+            - strong [ref=e356]: 01_technical_notes.txt
+            - generic [ref=e357]: 10/21/2026, 10:45:50 PM | completed
+            - generic [ref=e358]: 116 analyzed words · 0 locally unchecked passages
+          - generic [ref=e359]: 0 local exact / 0 local approximate / Unavailable online exact / Unavailable online approximate
+          - button "View report" [ref=e360]
+          - generic [ref=e361]:
+            - checkbox "Select scan 10/21/2026, 10:45:50 PM for comparison" [ref=e362]
+            - generic [ref=e363]: Compare
+        - text: ▤

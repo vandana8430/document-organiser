@@ -1,0 +1,26 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: 📁
+      - generic [ref=e7]: SmartFiles
+    - heading "Your documents. Organized intelligently." [level=1] [ref=e8]: Your documents.Organized intelligently.
+    - paragraph [ref=e9]: Manage your digital documents in one place with intelligent search and an AI-powered assistant.
+    - generic [ref=e10]: ✓ Easy document management
+    - generic [ref=e11]: ✓ Intelligent document discovery
+    - generic [ref=e12]: ✓ AI-assisted document access
+  - generic [ref=e14]:
+    - heading "Welcome back!" [level=2] [ref=e15]
+    - paragraph [ref=e16]: Sign in to your SmartFiles account.
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e19]: Email address
+        - textbox "Email address" [active] [ref=e20]:
+          - /placeholder: you@example.com
+      - generic [ref=e21]:
+        - generic [ref=e22]: Password
+        - textbox "Password" [ref=e23]:
+          - /placeholder: Enter your password
+      - button "Sign in" [ref=e24] [cursor=pointer]
+    - paragraph [ref=e25]:
+      - text: New to SmartFiles?
+      - button "Create account" [ref=e26] [cursor=pointer]

@@ -1,0 +1,81 @@
+%PDF-1.4
+%SmartFiles fictional samples
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1084 >>
+stream
+BT
+/F1 10 Tf
+48 756 Td
+14 TL
+/F1 16 Tf
+(SMARTFILES | FICTIONAL SAMPLE DOCUMENT) Tj
+/F1 10 Tf
+T*
+() Tj
+T*
+(MEETING REPORT: CEDAR LAB PROJECT REVIEW) Tj
+T*
+() Tj
+T*
+(Date: 18 June 2026. Location: fictional Northbridge Campus, Room 204. Facilitator: Noor) Tj
+T*
+(Patel.) Tj
+T*
+() Tj
+T*
+(Attendees: Noor Patel, Eli Brooks, Sora Kim, and Mateo Rivera. Agenda: sensor) Tj
+T*
+(reliability, water-use dashboard, and the final demonstration.) Tj
+T*
+() Tj
+T*
+(Discussion: The group agreed that readings should be labeled with the sensor ID and) Tj
+T*
+(calibration date. The dashboard must distinguish missing readings from low moisture.) Tj
+T*
+() Tj
+T*
+(Decisions: Keep the alert threshold at 28 percent for the next demo; display a clear) Tj
+T*
+(note that it is a prototype setting, not universal gardening advice.) Tj
+T*
+() Tj
+T*
+(Actions: Eli will add missing-data checks by 22 June. Sora will review the chart legend.) Tj
+T*
+(Mateo will prepare a two-minute explanation of the test method.) Tj
+T*
+() Tj
+T*
+(Sample meeting record; participants and decisions are fictional.) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000039 00000 n 
+0000000088 00000 n 
+0000000145 00000 n 
+0000000215 00000 n 
+0000000341 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1477
+%%EOF

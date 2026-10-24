@@ -1,0 +1,7 @@
+"SAMPLE DATA - FICTIONAL PROJECT EXPENSES"
+"Date","Category","Description","Amount (USD)","Approver","Status"
+"2026-05-03","Supplies","Soil sensor housings","84.5","Nadia Flores","Approved"
+"2026-05-10","Travel","Local garden visit","26.0","Ishan Das","Approved"
+"2026-05-18","Equipment","Gateway board","119.99","Nadia Flores","Approved"
+"2026-05-25","Printing","Workshop handouts","18.75","Maya Reed","Pending"
+"2026-06-02","Supplies","Cable ties and labels","12.4","Ishan Das","Approved"

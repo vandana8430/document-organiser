@@ -1,0 +1,456 @@
+- generic [ref=f2e2]:
+  - complementary [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - generic [ref=f2e5]: 📁
+      - text: SmartFiles
+    - navigation "Workspace" [ref=f2e6]:
+      - button "▦ Dashboard" [ref=f2e7] [cursor=pointer]
+      - button "📄 My Documents" [ref=f2e8] [cursor=pointer]
+      - button "⬆ Upload Documents" [ref=f2e9] [cursor=pointer]
+      - button "⌕ Search" [ref=f2e10] [cursor=pointer]
+      - button "✧ AI Assistant" [ref=f2e11] [cursor=pointer]
+      - button "🧩 Duplicate Finder" [ref=f2e12] [cursor=pointer]
+      - button "⇄ Document Comparison" [ref=f2e13] [cursor=pointer]
+      - button "⌕ Plagiarism Checker" [ref=f2e14] [cursor=pointer]
+      - button "◉ File Compressor" [ref=f2e15] [cursor=pointer]
+      - button "◈ Storage Optimizer" [ref=f2e16] [cursor=pointer]
+    - generic [ref=f2e17]:
+      - button "↪ Sign out" [ref=f2e18] [cursor=pointer]
+      - generic [ref=f2e19]:
+        - generic [ref=f2e20]: L
+        - generic [ref=f2e21]:
+          - strong [ref=f2e22]: lvandana608@gmail.com
+          - text: Personal workspace
+  - main [ref=f2e23]:
+    - generic [ref=f2e24]:
+      - generic [ref=f2e25]:
+        - heading "Plagiarism Checker" [level=2] [ref=f2e378]
+        - generic [ref=f2e27]: Your intelligent document workspace
+      - generic [ref=f2e28]:
+        - generic [ref=f2e29]:
+          - searchbox "Search documents by filename, topic, tag, or content" [ref=f2e30]
+          - generic "Search filters" [ref=f2e31]:
+            - combobox "Filter by category" [ref=f2e32]:
+              - option "All categories" [selected]
+              - option "Education & Assignments"
+              - option "Career & Resumes"
+              - option "Certificates"
+              - option "Project Reports"
+              - option "Technical Notes"
+              - option "Financial Documents"
+              - option "Presentations"
+              - option "Images & Scanned Documents"
+              - option "Other Documents"
+            - combobox "Filter by file type" [ref=f2e33]:
+              - option "All file types" [selected]
+              - option "PDF"
+              - option "DOCX"
+              - option "TXT"
+              - option "CSV"
+              - option "XLSX"
+              - option "PPTX"
+              - option "PNG"
+              - option "JPG"
+              - option "JPEG"
+            - searchbox "Filter by tag" [ref=f2e34]
+            - generic [ref=f2e35]:
+              - text: From
+              - textbox "Uploaded from date" [ref=f2e36]
+            - generic [ref=f2e37]:
+              - text: To
+              - textbox "Uploaded through date" [ref=f2e38]
+        - button "Open upload documents" [ref=f2e39] [cursor=pointer]: + Upload
+    - generic [ref=f2e379]:
+      - generic [ref=f2e381]:
+        - generic [ref=f2e382]: DOCUMENT INTEGRITY
+        - heading "Plagiarism & Source Checker" [level=2] [ref=f2e383]
+        - paragraph [ref=f2e384]: Review text overlap in your own documents, with optional Firecrawl source discovery.
+      - region [ref=f2e385]:
+        - generic [ref=f2e386]:
+          - generic [aria-hidden] [ref=f2e387]: ⌕
+          - generic [ref=f2e388]:
+            - heading "Start a document review" [level=3] [ref=f2e389]
+            - paragraph [ref=f2e390]: Choose an uploaded document or add a PDF, DOCX, or TXT file.
+        - generic [ref=f2e391]:
+          - generic [ref=f2e392]:
+            - generic [ref=f2e393]:
+              - generic [ref=f2e394]: Document to check
+              - combobox "Document to check" [ref=f2e395]:
+                - option "Select a document" [selected]
+                - option "DSA_MODULE_1.pdf"
+                - option "MADLabManual.docx"
+                - option "Vandana L Resume.pdf"
+                - option "team_meeting_notes.docx"
+                - option "team_meeting_notes.docx"
+                - option "python_study_guide.pdf"
+                - option "team_meeting_notes.docx"
+                - option "trip_plan_coorg.txt"
+                - option "team_meeting_notes.docx"
+                - option "team_meeting_notes.docx"
+                - option "python_study_guide.pdf"
+                - option "laptop_purchase_invoice.txt"
+                - option "laptop_purchase_invoice.txt"
+                - option "internship_completion_certificate.txt"
+                - option "hospital_report_copy.txt"
+                - option "hospital_management_project_report.txt"
+                - option "dbms_notes_revised.txt"
+                - option "dbms_notes_revised.txt"
+                - option "dbms_lecture_notes.txt"
+                - option "asha_rao_resume.txt"
+            - generic [ref=f2e396]:
+              - generic [ref=f2e397]:
+                - generic [ref=f2e398]: Or upload a document
+                - button "Or upload a document" [ref=f2e399]
+              - button "Upload document" [ref=f2e400] [cursor=pointer]
+          - generic [ref=f2e401]:
+            - generic [ref=f2e402] [cursor=pointer]:
+              - checkbox "Include online source discovery Use Firecrawl to search selected passages and compare any returned page text. Your complete document is not sent." [ref=f2e403]
+              - generic [ref=f2e404]:
+                - strong [ref=f2e405]: Include online source discovery
+                - generic [ref=f2e406]: Use Firecrawl to search selected passages and compare any returned page text. Your complete document is not sent.
+            - paragraph [ref=f2e407]: Online discovery requires FIRECRAWL_API_KEY on the backend. Local comparison works without an API key and remains available if Firecrawl cannot run.
+        - generic [ref=f2e408]:
+          - button "Check document" [disabled] [ref=f2e409]:
+            - generic [aria-hidden] [ref=f2e410]: ⌕
+            - text: Check document
+          - generic [ref=f2e411]: Similarity is a review signal, not a plagiarism verdict.
+        - generic [ref=f2e412]:
+          - generic [ref=f2e457]:
+            - generic [ref=f2e458]:
+              - generic [ref=f2e459]: SCAN REPORT
+              - heading "DSA_MODULE_1.pdf" [level=3] [ref=f2e460]
+              - paragraph [ref=f2e461]: Scanned 10/19/2026, 10:57:39 PM
+            - generic [ref=f2e462]: completed_with_warnings
+          - generic [ref=f2e463]:
+            - 'article "Document: DSA_MODULE_1.pdf" [ref=f2e464]':
+              - generic [ref=f2e465]:
+                - generic [ref=f2e466]: ▤
+                - generic [ref=f2e467]: Document
+              - strong [ref=f2e468]: DSA_MODULE_1.pdf
+              - generic [ref=f2e469]: Selected file
+            - 'article "Scan status: completed_with_warnings" [ref=f2e470]':
+              - generic [ref=f2e471]:
+                - generic [ref=f2e472]: ◷
+                - generic [ref=f2e473]: Scan status
+              - strong [ref=f2e474]: completed_with_warnings
+              - generic [ref=f2e475]: Matches need review
+            - 'article "Analyzed words: 3,087" [ref=f2e476]':
+              - generic [ref=f2e477]:
+                - generic [ref=f2e478]: Aa
+                - generic [ref=f2e479]: Analyzed words
+              - strong [ref=f2e480]: 3,087
+              - generic [ref=f2e481]: Document text examined
+            - 'article "Local exact matches: 0" [ref=f2e482]':
+              - generic [ref=f2e483]:
+                - generic [ref=f2e484]: ≡
+                - generic [ref=f2e485]: Local exact matches
+              - strong [ref=f2e486]: "0"
+              - generic [ref=f2e487]: Other documents in your account
+            - 'article "Local approximate matches: 0" [ref=f2e488]':
+              - generic [ref=f2e489]:
+                - generic [ref=f2e490]: ≈
+                - generic [ref=f2e491]: Local approximate matches
+              - strong [ref=f2e492]: "0"
+              - generic [ref=f2e493]: Other documents in your account
+            - 'article "Online matches: 2" [ref=f2e494]':
+              - generic [ref=f2e495]:
+                - generic [ref=f2e496]: ⌕
+                - generic [ref=f2e497]: Online matches
+              - strong [ref=f2e498]: "2"
+              - generic [ref=f2e499]: Firecrawl page text
+            - 'article "Possible sources: 15" [ref=f2e500]':
+              - generic [ref=f2e501]:
+                - generic [ref=f2e502]: ↗
+                - generic [ref=f2e503]: Possible sources
+              - strong [ref=f2e504]: "15"
+              - generic [ref=f2e505]: Local documents and returned sources
+            - 'article "Online pages checked: 15" [ref=f2e506]':
+              - generic [ref=f2e507]:
+                - generic [ref=f2e508]: ▣
+                - generic [ref=f2e509]: Online pages checked
+              - strong [ref=f2e510]: "15"
+              - generic [ref=f2e511]: Page text returned by Firecrawl
+            - 'article "Unchecked passages: 110" [ref=f2e512]':
+              - generic [ref=f2e513]:
+                - generic [ref=f2e514]: "!"
+                - generic [ref=f2e515]: Unchecked passages
+              - strong [ref=f2e516]: "110"
+              - generic [ref=f2e517]: "Not searched online: 296 · not analyzed locally"
+          - generic [ref=f2e518]:
+            - heading "Passage coverage" [level=3] [ref=f2e519]
+            - generic [ref=f2e520]:
+              - article [ref=f2e521]:
+                - generic [ref=f2e522]: "!"
+                - strong [ref=f2e523]: Matched text
+                - paragraph [ref=f2e524]: Detected passages are listed below for review.
+              - article [ref=f2e525]:
+                - generic [ref=f2e526]: ✓
+                - strong [ref=f2e527]: Checked, no local match detected
+                - paragraph [ref=f2e528]: 300 of 300 analyzed passages had no detected local match.
+              - article [ref=f2e529]:
+                - generic [ref=f2e530]: "!"
+                - strong [ref=f2e531]: Unchecked text
+                - paragraph [ref=f2e532]: "Not analyzed locally: 110."
+                - paragraph [ref=f2e533]: "Not searched online: 296."
+          - generic [ref=f2e534]:
+            - heading "Visual analytics" [level=3] [ref=f2e535]
+            - paragraph [ref=f2e536]: Charts use passage counts and the same backend results shown above. Missing metrics remain unavailable.
+            - generic [ref=f2e537]:
+              - article [ref=f2e538]:
+                - heading "Local passage coverage" [level=4] [ref=f2e539]
+                - paragraph [ref=f2e540]: Passage counts for local comparison. Unchecked passages are separate from passages that were checked and had no detected local match.
+                - generic [ref=f2e541]:
+                  - 'img "Local passage coverage: 0 matched locally, 300 checked with no local match, 110 unchecked locally." [ref=f2e542]':
+                    - 'generic "Checked, no local match detected: 300 of 410 eligible passages" [ref=f2e544]'
+                    - 'generic "Unchecked locally: 110 of 410 eligible passages" [ref=f2e545]'
+                    - generic [ref=f2e546]: "410"
+                    - generic [ref=f2e547]: passages
+                  - list [ref=f2e548]:
+                    - 'listitem "Matched locally: 0 passages" [ref=f2e549]':
+                      - generic [ref=f2e551]: "Matched locally: 0 (0.0%)"
+                    - 'listitem "Checked, no local match detected: 300 passages" [ref=f2e552]':
+                      - generic [ref=f2e554]: "Checked, no local match detected: 300 (73.2%)"
+                    - 'listitem "Unchecked locally: 110 passages" [ref=f2e555]':
+                      - generic [ref=f2e557]: "Unchecked locally: 110 (26.8%)"
+                - paragraph [ref=f2e558]: Firecrawl did not search 296 passages. This is shown separately because those passages are also included in local-coverage categories.
+              - article [ref=f2e559]:
+                - heading "Matching passages by type" [level=4] [ref=f2e560]
+                - paragraph [ref=f2e561]: All values are unique passage counts, not word counts. Online counts appear only when Firecrawl returned page text for analysis.
+                - generic [ref=f2e562]:
+                  - 'generic "Local exact: 0 passages" [ref=f2e563]':
+                    - generic "Unique original passages with an exact match in another uploaded document." [ref=f2e564]: Local exact
+                    - strong [ref=f2e566]: "0"
+                  - 'generic "Local approximate: 0 passages" [ref=f2e567]':
+                    - generic "Unique original passages with approximate-only local matches." [ref=f2e568]: Local approximate
+                    - strong [ref=f2e570]: "0"
+                  - 'generic "Online exact: 2 passages" [ref=f2e571]':
+                    - generic "Unique original passages with exact text found in retrieved Firecrawl page text." [ref=f2e572]: Online exact
+                    - strong [ref=f2e575]: "2"
+                  - 'generic "Online approximate: 0 passages" [ref=f2e576]':
+                    - generic "Unique original passages with approximate matches in retrieved Firecrawl page text." [ref=f2e577]: Online approximate
+                    - strong [ref=f2e579]: "0"
+              - article [ref=f2e580]:
+                - heading "Matching passages by source" [level=4] [ref=f2e581]
+                - paragraph [ref=f2e582]: Counts are distinct matched passages per source. Search results without a compared text match are not included.
+                - generic [ref=f2e583]:
+                  - 'generic "Online source: Applications, Advantages and Disadvantages of Array; 1 distinct matching passages" [ref=f2e584]':
+                    - generic [ref=f2e585]:
+                      - generic [ref=f2e586]: Applications, Advantages and Disadvantages of Array
+                      - generic [ref=f2e587]: www.geeksforgeeks.org
+                    - strong [ref=f2e590]: "1"
+                  - 'generic "Online source: CUDA Array Addition Program Guide | PDF | Data Structure ... - Scribd; 1 distinct matching passages" [ref=f2e591]':
+                    - generic [ref=f2e592]:
+                      - generic [ref=f2e593]: CUDA Array Addition Program Guide | PDF | Data Structure ... - Scribd
+                      - generic [ref=f2e594]: www.scribd.com
+                    - strong [ref=f2e597]: "1"
+                  - 'generic "Online source: Data Structure, types and examples - CS Corner Sunita Rai; 1 distinct matching passages" [ref=f2e598]':
+                    - generic [ref=f2e599]:
+                      - generic [ref=f2e600]: Data Structure, types and examples - CS Corner Sunita Rai
+                      - generic [ref=f2e601]: cscornersunitarai.com
+                    - strong [ref=f2e604]: "1"
+                  - 'generic "Online source: Data Structures and Algorithms Overview | PDF | Time Complexity; 1 distinct matching passages" [ref=f2e605]':
+                    - generic [ref=f2e606]:
+                      - generic [ref=f2e607]: Data Structures and Algorithms Overview | PDF | Time Complexity
+                      - generic [ref=f2e608]: www.scribd.com
+                    - strong [ref=f2e611]: "1"
+                  - 'generic "Online source: DATA STRUCTURES UNIT 1 ... - Slideshare; 1 distinct matching passages" [ref=f2e612]':
+                    - generic [ref=f2e613]:
+                      - generic [ref=f2e614]: DATA STRUCTURES UNIT 1 ... - Slideshare
+                      - generic [ref=f2e615]: www.slideshare.net
+                    - strong [ref=f2e618]: "1"
+                  - 'generic "Online source: DATA STRUCTURES UNIT 1.pptxxxxxxxxxxxxxxxxxx | PPTX; 1 distinct matching passages" [ref=f2e619]':
+                    - generic [ref=f2e620]:
+                      - generic [ref=f2e621]: DATA STRUCTURES UNIT 1.pptxxxxxxxxxxxxxxxxxx | PPTX
+                      - generic [ref=f2e622]: www.slideshare.net
+                    - strong [ref=f2e625]: "1"
+                  - 'generic "Online source: Unit 1: Introduction to Data Structures and Their Importance - Studocu; 1 distinct matching passages" [ref=f2e626]':
+                    - generic [ref=f2e627]:
+                      - generic [ref=f2e628]: "Unit 1: Introduction to Data Structures and Their Importance - Studocu"
+                      - generic [ref=f2e629]: www.studocu.com
+                    - strong [ref=f2e632]: "1"
+                  - 'generic "Online source: What is an Array? - 7Days Career; 1 distinct matching passages" [ref=f2e633]':
+                    - generic [ref=f2e634]:
+                      - generic [ref=f2e635]: What is an Array? - 7Days Career
+                      - generic [ref=f2e636]: 7daycareer.com
+                    - strong [ref=f2e639]: "1"
+          - paragraph [ref=f2e640]: Firecrawl Search source discovery was incomplete; see the messages below. Local comparison still ran.
+          - list [ref=f2e641]:
+            - listitem [ref=f2e642]: Analysis sampled 300 of 410 eligible passages to keep comparisons bounded.
+            - listitem [ref=f2e643]: Online search covered 4 of 300 analyzed passages; 296 were not searched.
+            - listitem [ref=f2e644]: Firecrawl Search timed out for one passage; local comparison remains available.
+          - generic [ref=f2e645]:
+            - heading "Matching passages" [level=3] [ref=f2e646]
+            - generic [ref=f2e647]:
+              - generic [ref=f2e648]:
+                - generic [ref=f2e649]: Source
+                - combobox "Filter matching passages by source" [ref=f2e650]:
+                  - option "All sources" [selected]
+                  - option "Local matches"
+                  - option "Online matches"
+              - generic [ref=f2e651]:
+                - generic [ref=f2e652]: Match type
+                - combobox "Filter matching passages by match type" [ref=f2e653]:
+                  - option "All match types" [selected]
+                  - option "Exact matches"
+                  - option "Approximate matches"
+            - paragraph [ref=f2e654]: Showing 8 of 8 matching passages
+            - generic [ref=f2e655]:
+              - group [ref=f2e656]:
+                - generic "Exact match Online source Data Structures and Algorithms Overview | PDF | Time Complexity www.scribd.com View passages +" [ref=f2e657] [cursor=pointer]:
+                  - generic [ref=f2e658]: Exact match
+                  - generic [ref=f2e659]: Online source
+                  - link "Data Structures and Algorithms Overview | PDF | Time Complexity" [ref=f2e660]:
+                    - /url: https://www.scribd.com/document/879289116/Dsa-Module-1
+                  - generic [ref=f2e661]: www.scribd.com
+                  - generic [ref=f2e662]: View passages
+                  - text: +
+              - group [ref=f2e663]:
+                - 'generic "Exact match Online source Unit 1: Introduction to Data Structures and Their Importance - Studocu www.studocu.com View passages +" [ref=f2e664] [cursor=pointer]':
+                  - generic [ref=f2e665]: Exact match
+                  - generic [ref=f2e666]: Online source
+                  - 'link "Unit 1: Introduction to Data Structures and Their Importance - Studocu" [ref=f2e667]':
+                    - /url: https://www.studocu.com/in/document/galgotias-university/data-base-management-system/unit-1-data-structure/94052130
+                  - generic [ref=f2e668]: www.studocu.com
+                  - generic [ref=f2e669]: View passages
+                  - text: +
+              - group [ref=f2e670]:
+                - generic "Exact match Online source DATA STRUCTURES UNIT 1.pptxxxxxxxxxxxxxxxxxx | PPTX www.slideshare.net View passages +" [ref=f2e671] [cursor=pointer]:
+                  - generic [ref=f2e672]: Exact match
+                  - generic [ref=f2e673]: Online source
+                  - link "DATA STRUCTURES UNIT 1.pptxxxxxxxxxxxxxxxxxx | PPTX" [ref=f2e674]:
+                    - /url: https://www.slideshare.net/slideshow/data-structures-unit-1-pptxxxxxxxxxxxxxxxxxx/285937199
+                  - generic [ref=f2e675]: www.slideshare.net
+                  - generic [ref=f2e676]: View passages
+                  - text: +
+              - group [ref=f2e677]:
+                - generic "Exact match Online source DATA STRUCTURES UNIT 1 ... - Slideshare www.slideshare.net View passages +" [ref=f2e678] [cursor=pointer]:
+                  - generic [ref=f2e679]: Exact match
+                  - generic [ref=f2e680]: Online source
+                  - link "DATA STRUCTURES UNIT 1 ... - Slideshare" [ref=f2e681]:
+                    - /url: https://www.slideshare.net/slideshow/data-structures-unit-1-pptxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/286018406
+                  - generic [ref=f2e682]: www.slideshare.net
+                  - generic [ref=f2e683]: View passages
+                  - text: +
+              - group [ref=f2e684]:
+                - generic "Exact match Online source Applications, Advantages and Disadvantages of Array www.geeksforgeeks.org View passages +" [ref=f2e685] [cursor=pointer]:
+                  - generic [ref=f2e686]: Exact match
+                  - generic [ref=f2e687]: Online source
+                  - link "Applications, Advantages and Disadvantages of Array" [ref=f2e688]:
+                    - /url: https://www.geeksforgeeks.org/dsa/applications-advantages-and-disadvantages-of-array-data-structure
+                  - generic [ref=f2e689]: www.geeksforgeeks.org
+                  - generic [ref=f2e690]: View passages
+                  - text: +
+              - group [ref=f2e691]:
+                - generic "Exact match Online source CUDA Array Addition Program Guide | PDF | Data Structure ... - Scribd www.scribd.com View passages +" [ref=f2e692] [cursor=pointer]:
+                  - generic [ref=f2e693]: Exact match
+                  - generic [ref=f2e694]: Online source
+                  - link "CUDA Array Addition Program Guide | PDF | Data Structure ... - Scribd" [ref=f2e695]:
+                    - /url: https://www.scribd.com/document/838871727/new-hpc-removed
+                  - generic [ref=f2e696]: www.scribd.com
+                  - generic [ref=f2e697]: View passages
+                  - text: +
+              - group [ref=f2e698]:
+                - generic "Exact match Online source What is an Array? - 7Days Career 7daycareer.com View passages +" [ref=f2e699] [cursor=pointer]:
+                  - generic [ref=f2e700]: Exact match
+                  - generic [ref=f2e701]: Online source
+                  - link "What is an Array? - 7Days Career" [ref=f2e702]:
+                    - /url: https://7daycareer.com/array-basic
+                  - generic [ref=f2e703]: 7daycareer.com
+                  - generic [ref=f2e704]: View passages
+                  - text: +
+              - group [ref=f2e705]:
+                - generic "Exact match Online source Data Structure, types and examples - CS Corner Sunita Rai cscornersunitarai.com View passages +" [ref=f2e706] [cursor=pointer]:
+                  - generic [ref=f2e707]: Exact match
+                  - generic [ref=f2e708]: Online source
+                  - link "Data Structure, types and examples - CS Corner Sunita Rai" [ref=f2e709]:
+                    - /url: https://cscornersunitarai.com/courses/data-structure/lessons/data-structure-types-and-examples
+                  - generic [ref=f2e710]: cscornersunitarai.com
+                  - generic [ref=f2e711]: View passages
+                  - text: +
+          - generic [ref=f2e712]:
+            - heading "Possible sources (not confirmed matches)" [level=3] [ref=f2e713]
+            - paragraph [ref=f2e714]: These are returned search results without a detected text match. A result or snippet alone does not confirm copied text.
+            - article [ref=f2e715]:
+              - 'link "Module-1: Introduction to Data Structures and Arrays (DSA 101)" [ref=f2e716] [cursor=pointer]':
+                - /url: https://www.studocu.com/in/document/rashtreeya-vidyalaya-college-of-engineering/data-structures/module-1-dsa-module-1/99077758
+              - generic [ref=f2e717]: www.studocu.com
+              - paragraph [ref=f2e718]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=f2e719]: "![](https://doc-assets.studocu.com/8560032bbbf645ad1e21efe696027954/html/bg1.png?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6XC9cL2RvYy1hc3NldHMuc3R1ZG9jdS5jb21cLzg1NjAwMzJiYmJmNjQ1YWQxZTIxZWZlNjk2MDI3OTU0XC9odG1sXC8qIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzkyNTE3MjY0fX19XX0_&Signature=GEzUgjp3gTAxNb-10SGk6qqbZz~unZxLvpN1Dewy2CXbIoighyMV6bIm9nep5Cal0kBvmldMGU9D5BcphILkrcVB1-23IS6CM1n65pagBYuUny~~z2-~qRzCktP2y4eJ3zki3mu~uu7TVYapi11DAn~orE5ycoiM~yVWu7nk7VXOc2EIJFU~1pLbxppUMcjwaQr-6z-JmmekU83Jpq~A~xpQ5qZ7-UCjRkdD3Ut74cB5Ku1SETpOaBXa17g2rLNO7cta4l2W8ocjVKTM1KVns4gR5d77-XKnsg9geqBrCo3cpsMskNHwIvNQd5KYHb3ok0L9UwCWvR00TMEFXmdDTA__&Key-Pair-Id=APKAJ535ZH3ZAIIOADHQ) MODULE 1 INTRODUCTION TO DATA STRUCTURES, ARRAYS and STRUCTURES, STACKS INTRODUCTION TO DATA STRUCTURES Data may be organized in many different ways. The logical or mathematical model of a particular organization of data is called adata structure. The choice of a particular data model depends on"
+            - article [ref=f2e720]:
+              - link "DATA STRUCTURES AND ALGORITHMS-” ARRAYS” - Medium" [ref=f2e721] [cursor=pointer]:
+                - /url: https://medium.com/@oluwabusolaadubuola/data-structures-and-algorithms-arrays-d0221fc210e1
+              - generic [ref=f2e722]: medium.com
+              - paragraph [ref=f2e723]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=f2e724]: "[Sitemap](https://medium.com/sitemap/sitemap.xml) [Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=---top_nav_layout_nav-------------------------------------------) Sign up [Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40oluwabusolaadubuola%2Fdata-structures-and-algorithms-arrays-d0221fc210e1&source=post_page---top_nav_layout_nav-----------------------global_nav--------------------) [Medium Logo](https://medium.com/?source=---top_nav_layout_nav-------------------------------------------) Get app [Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav--------------------) [Search](https://medium.com/search?source=---top_nav_layout_nav-------------------------------------------) Sign up [Sign in](https://medium.com/m/signin?operation=login&redirect=https%"
+            - article [ref=f2e725]:
+              - link "Asymptotic Notations for Analysis of Algorithms - GeeksforGeeks" [ref=f2e726] [cursor=pointer]:
+                - /url: https://www.geeksforgeeks.org/dsa/types-of-asymptotic-notations-in-complexity-analysis-of-algorithms
+              - generic [ref=f2e727]: www.geeksforgeeks.org
+              - paragraph [ref=f2e728]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=f2e729]: "[![geeksforgeeks](https://media.geeksforgeeks.org/gfg-gg-logo.svg)](https://www.geeksforgeeks.org/) ![search icon](https://media.geeksforgeeks.org/auth-dashboard-uploads/Property=Light---Default.svg) - Courses - Tutorials - Interview Prep Switch to Dark Mode Sign In - [DSA Tutorial](https://www.geeksforgeeks.org/dsa/dsa-tutorial-learn-data-structures-and-algorithms/) - [Interview Questions](https://www.geeksforgeeks.org/dsa/top-100-data-structure-and-algorithms-dsa-interview-questions-topic-wise/) - [Quizzes](https://www.geeksforgeeks.org/dsa/data-structures-and-algorithms-online-quiz/) - [Must Do](https://www.geeksforgeeks.org/dsa/must-do-coding-questions-for-companies-like-amazon-microsoft-adobe/) - [Advanced DSA](https://www.geeksforgeeks.org/dsa/advanced-data-structures/) - [System Design](https://www.geeksforgeeks.org/system-design/system-design-tutorial/) - [Aptitude](https://www.geeksforgeeks.org/aptitude/aptitude-questions-and-answers/) - [Puzzles](https://www.geeksforg"
+            - article [ref=f2e730]:
+              - link "Algorithm Performance Analysis Guide | PDF | Time Complexity" [ref=f2e731] [cursor=pointer]:
+                - /url: https://www.scribd.com/document/945542722/DSA-UNIT-I-B-1
+              - generic [ref=f2e732]: www.scribd.com
+              - paragraph [ref=f2e733]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=f2e734]: "Opens in a new windowOpens an external websiteOpens an external website in a new window Close this consent banner This website utilizes technologies such as cookies to enable essential site functionality, as well as for performance cookies, personalization, and targeted advertising. To learn more, view the following link: [Privacy Policy](https://support.scribd.com/hc/articles/210129366-Privacy-policy) Your Privacy Choices Skip to main content [Open navigation menu](https://www.scribd.com/document/945542722/DSA-UNIT-I-B-1#sidebar) [![Scribd](<Base64-Image-Removed>)](https://www.scribd.com/) Close suggestionsSearchSearch enChange Language, English [Upload](https://www.scribd.com/upload-document) Sign in Sign in [Download free for 30 days](https://www.scribd.com/oauth/signup?doc_id=945542722) # Algorithm Performance Analysis Guide 0 ratings0% found this document useful (0 votes) 17 views9 pages AI-enhanced title and description Performance analysis of an algorithm involves"
+            - article [ref=f2e735]:
+              - link "Relative Real Time Complexities. Creating Relative Time ... - Medium" [ref=f2e736] [cursor=pointer]:
+                - /url: https://medium.com/@datascience_sage/relative-real-time-complexities-1ae5a68176a8
+              - generic [ref=f2e737]: medium.com
+              - paragraph [ref=f2e738]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=f2e739]: "[Sitemap](https://medium.com/sitemap/sitemap.xml) [Open in app](https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=---top_nav_layout_nav-------------------------------------------) Sign up [Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmedium.com%2F%40datascience_sage%2Frelative-real-time-complexities-1ae5a68176a8&source=post_page---top_nav_layout_nav-----------------------global_nav--------------------) [Medium Logo](https://medium.com/?source=---top_nav_layout_nav-------------------------------------------) Get app [Write](https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav--------------------) [Search](https://medium.com/search?source=---top_nav_layout_nav-------------------------------------------) Sign up [Sign in](https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fm"
+            - article [ref=f2e740]:
+              - 'link "PST 1 Unit - Understanding Algorithms: Concepts and Examples" [ref=f2e741] [cursor=pointer]':
+                - /url: https://www.studocu.com/in/document/dayananda-sagar-university/computer-science/pst-1-unit-understanding-algorithms-concepts-and-examples/143578248
+              - generic [ref=f2e742]: www.studocu.com
+              - paragraph [ref=f2e743]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=f2e744]: "This document provides a comprehensive overview of algorithms, detailing their definitions, characteristics, and applications across various fields. It explains how algorithms function, their importance in problem-solving, and the role of asymptotic notations in analyzing algorithm efficiency. Key Concepts - Algorithm: A structured set of instructions for solving problems or tasks. - Characteristics: Key traits include clarity, finiteness, and effectiveness. - Applications: Algorithms are used in data analysis, cryptography, and optimization. - Efficiency: Focuses on solving problems quickly with minimal resources. - Asymptotic Notations: Tools for analyzing algorithm performance as input size grows. - Optimization: The process of improving algorithms for better performance. ...more ![](https://doc-assets.studocu.com/30a8592efbe98aedbe551379ec412836/html/bg1.png?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6XC9cL2RvYy1hc3NldHMuc3R1ZG9jdS5jb21cLzMwYTg1OTJlZmJlOThhZWRiZTU1MTM3OW"
+            - article [ref=f2e745]:
+              - link "[PDF] Asymptotic Notations - Rohini College" [ref=f2e746] [cursor=pointer]:
+                - /url: https://www.rcet.org.in/uploads/academics/regulation2021/rohini_77778703377.pdf
+              - generic [ref=f2e747]: www.rcet.org.in
+              - paragraph [ref=f2e748]: Page text was retrieved, but no matching passage was detected.
+              - paragraph [ref=f2e749]: "## Asymptotic Notations • Asymptotic Notations are mathematical tools used to analyze the performance of algorithms by understanding how their efficiency changes as the input size grows. • These notations provide a concise way to express the behavior of an algorithm’s time or space complexity as the input size approaches infinity. • Rather than comparing algorithms directly, asymptotic analysis focuses on understanding the relative growth rates of algorithms’ complexities. • It enables comparisons of algorithms’ efficiency by abstracting away machine-specific constants and implementation details, focusing instead on fundamental trends. • Asymptotic analysis allows for the comparison of algorithms’ space and time complexities by examining their performance characteristics as the input size varies. • By using asymptotic notations, such as Big O, Big Omega, and Big Theta, we can categorize algorithms based on their worst-case, best-case, or average-case time or space complexities, p"
+          - paragraph [ref=f2e750]: Eligible passages contain at least five words. Exact-word coverage is the number of words in passages with an exact match divided by all words in the analyzed passages. Approximate-only coverage uses the same denominator and counts words in passages with an approximate match but no exact match; it is reported separately and is not added to exact-word coverage. Approximate matches require word-set Jaccard overlap of at least 0.78. Exact matching uses Unicode NFKC, case-folding, and whitespace normalization. At most 300 passages from the selected document are analyzed. Local comparison includes all other owned documents with extracted text, but is limited to the first 1,000 source sentences per document; reports disclose when a document was truncated. Online search, when explicitly enabled, searches at most four distinctive passages.
+          - paragraph [ref=f2e751]: Text similarity does not by itself prove plagiarism. Review the matching passages and sources manually.
+      - generic [ref=f2e417]:
+        - heading "Previous reports" [level=2] [ref=f2e418]
+        - button "Refresh reports" [ref=f2e419] [cursor=pointer]
+      - generic [ref=f2e420]:
+        - generic [ref=f2e421] [cursor=pointer]:
+          - generic [ref=f2e422]:
+            - strong [ref=f2e423]: DSA_MODULE_1.pdf
+            - generic [ref=f2e424]: 10/19/2026, 10:57:39 PM | completed_with_warnings
+          - generic [ref=f2e425]: 0% local exact / 0% local approximate
+          - button "View report" [active] [ref=f2e426]
+        - generic [ref=f2e427] [cursor=pointer]:
+          - generic [ref=f2e428]:
+            - strong [ref=f2e429]: MADLabManual.docx
+            - generic [ref=f2e430]: 10/19/2026, 10:49:01 PM | completed_with_warnings
+          - generic [ref=f2e431]: 0% local exact / 0% local approximate
+          - button "View report" [ref=f2e432]
+        - generic [ref=f2e433] [cursor=pointer]:
+          - generic [ref=f2e434]:
+            - strong [ref=f2e435]: MADLabManual.docx
+            - generic [ref=f2e436]: 10/19/2026, 10:15:13 PM | completed_with_warnings
+          - generic [ref=f2e437]: 0% local exact / 0% local approximate
+          - button "View report" [ref=f2e438]
+        - generic [ref=f2e439] [cursor=pointer]:
+          - generic [ref=f2e440]:
+            - strong [ref=f2e441]: MADLabManual.docx
+            - generic [ref=f2e442]: 10/19/2026, 10:07:29 PM | completed_with_warnings
+          - generic [ref=f2e443]: 0% local exact / 0% local approximate
+          - button "View report" [ref=f2e444]
+        - generic [ref=f2e445] [cursor=pointer]:
+          - generic [ref=f2e446]:
+            - strong [ref=f2e447]: MADLabManual.docx
+            - generic [ref=f2e448]: 10/19/2026, 9:37:35 PM | completed_with_warnings
+          - generic [ref=f2e449]: 0% local exact / 0% local approximate
+          - button "View report" [ref=f2e450]
+        - generic [ref=f2e451] [cursor=pointer]:
+          - generic [ref=f2e452]:
+            - strong [ref=f2e453]: Vandana L Resume.pdf
+            - generic [ref=f2e454]: 10/19/2026, 8:05:24 PM | completed_with_warnings
+          - generic [ref=f2e455]: 0% local exact / Unavailable local approximate
+          - button "View report" [ref=f2e456]

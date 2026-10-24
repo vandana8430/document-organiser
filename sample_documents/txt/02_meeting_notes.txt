@@ -1,0 +1,9 @@
+SMARTFILES FICTIONAL SAMPLE | Meeting Notes: Cedar Lab Weekly Check-in
+
+Date: 18 June 2026. Participants: Noor Patel, Eli Brooks, Sora Kim, and Mateo Rivera (all fictional).
+
+The team reviewed the WaterWise project report and agreed to show both the sensor reading and its calibration date. A missing reading must be displayed as unavailable, not as zero percent moisture.
+
+Action items: Eli will add the stale-reading indicator; Sora will review contrast in the chart legend; Mateo will prepare a short presentation about water conservation and limitations.
+
+Next meeting: 25 June 2026. Sample notes for SmartFiles search, summaries, assistant retrieval, and duplicate detection.

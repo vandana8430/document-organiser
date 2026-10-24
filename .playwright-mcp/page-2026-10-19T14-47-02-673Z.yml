@@ -1,0 +1,105 @@
+- generic [ref=f1e2]:
+  - complementary [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - generic [ref=f1e5]: 📁
+      - text: SmartFiles
+    - generic [ref=f1e6]: WORKSPACE
+    - navigation "Workspace" [ref=f1e7]:
+      - button "▦ Dashboard" [ref=f1e8] [cursor=pointer]
+      - button "📄 My Documents" [ref=f1e9] [cursor=pointer]
+      - button "⬆ Upload Documents" [ref=f1e10] [cursor=pointer]
+      - button "⌕ Search" [ref=f1e11] [cursor=pointer]
+      - button "✧ AI Assistant" [ref=f1e12] [cursor=pointer]
+      - button "🧩 Duplicate Finder" [ref=f1e13] [cursor=pointer]
+      - button "⇄ Document Comparison" [ref=f1e14] [cursor=pointer]
+      - button "⌕ Plagiarism Checker" [active] [ref=f1e15] [cursor=pointer]
+      - button "◉ File Compressor" [ref=f1e16] [cursor=pointer]
+      - button "◈ Storage Optimizer" [ref=f1e17] [cursor=pointer]
+    - generic [ref=f1e18]:
+      - generic [ref=f1e19]: ACCOUNT
+      - button "↪ Sign out" [ref=f1e20] [cursor=pointer]
+      - generic [ref=f1e21]:
+        - generic [ref=f1e22]: L
+        - generic [ref=f1e23]:
+          - strong [ref=f1e24]: lvandana608@gmail.com
+          - text: Personal workspace
+  - main [ref=f1e25]:
+    - generic [ref=f1e26]:
+      - generic [ref=f1e27]:
+        - heading "Plagiarism Checker" [level=2] [ref=f1e380]
+        - generic [ref=f1e29]: Your intelligent document workspace
+      - generic [ref=f1e30]:
+        - generic [ref=f1e31]:
+          - searchbox "Search documents by filename, topic, tag, or content" [ref=f1e32]
+          - generic "Search filters" [ref=f1e33]:
+            - combobox "Filter by category" [ref=f1e34]:
+              - option "All categories" [selected]
+              - option "Education & Assignments"
+              - option "Career & Resumes"
+              - option "Certificates"
+              - option "Project Reports"
+              - option "Technical Notes"
+              - option "Financial Documents"
+              - option "Presentations"
+              - option "Images & Scanned Documents"
+              - option "Other Documents"
+            - combobox "Filter by file type" [ref=f1e35]:
+              - option "All file types" [selected]
+              - option "PDF"
+              - option "DOCX"
+              - option "TXT"
+              - option "CSV"
+              - option "XLSX"
+              - option "PPTX"
+              - option "PNG"
+              - option "JPG"
+              - option "JPEG"
+            - searchbox "Filter by tag" [ref=f1e36]
+            - generic [ref=f1e37]:
+              - text: From
+              - textbox "Uploaded from date" [ref=f1e38]
+            - generic [ref=f1e39]:
+              - text: To
+              - textbox "Uploaded through date" [ref=f1e40]
+        - button "Open upload documents" [ref=f1e41] [cursor=pointer]: + Upload
+    - generic [ref=f1e381]:
+      - generic [ref=f1e383]:
+        - heading "Plagiarism & Source Checker" [level=2] [ref=f1e384]
+        - paragraph [ref=f1e385]: Compare extracted passages with your own documents and optionally discover possible web sources.
+      - generic [ref=f1e386]:
+        - generic [ref=f1e387]:
+          - generic [ref=f1e388]: Uploaded PDF, DOCX, or TXT document
+          - combobox "Uploaded PDF, DOCX, or TXT document" [ref=f1e389]:
+            - option "Select a document" [selected]
+            - option "Vandana L Resume.pdf"
+            - option "team_meeting_notes.docx"
+            - option "team_meeting_notes.docx"
+            - option "python_study_guide.pdf"
+            - option "team_meeting_notes.docx"
+            - option "trip_plan_coorg.txt"
+            - option "team_meeting_notes.docx"
+            - option "team_meeting_notes.docx"
+            - option "python_study_guide.pdf"
+            - option "laptop_purchase_invoice.txt"
+            - option "laptop_purchase_invoice.txt"
+            - option "internship_completion_certificate.txt"
+            - option "hospital_report_copy.txt"
+            - option "hospital_management_project_report.txt"
+            - option "dbms_notes_revised.txt"
+            - option "dbms_notes_revised.txt"
+            - option "dbms_lecture_notes.txt"
+            - option "asha_rao_resume.txt"
+        - generic [ref=f1e390]:
+          - checkbox "Enable online source discovery for this scan. Only selected extracted passages are sent to Brave Search; your whole document is not uploaded." [ref=f1e391]
+          - generic [ref=f1e392]: Enable online source discovery for this scan. Only selected extracted passages are sent to Brave Search; your whole document is not uploaded.
+        - paragraph [ref=f1e393]: Online source discovery is optional. Brave Search results and snippets can suggest possible sources but do not verify the full webpage. Local comparison works without an API key.
+        - button "Check Plagiarism" [disabled] [ref=f1e394]
+      - generic [ref=f1e395]:
+        - heading "Previous reports" [level=2] [ref=f1e396]
+        - button "Refresh reports" [ref=f1e397] [cursor=pointer]
+      - generic [ref=f1e399] [cursor=pointer]:
+        - generic [ref=f1e400]:
+          - strong [ref=f1e401]: Vandana L Resume.pdf
+          - generic [ref=f1e402]: 10/19/2026, 8:05:24 PM | completed_with_warnings
+        - generic [ref=f1e403]: 0% exact
+        - button "View report" [ref=f1e404]

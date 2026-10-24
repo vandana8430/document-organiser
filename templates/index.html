@@ -1,0 +1,392 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartFiles | Intelligent Document Organizer</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+<!-- LOGIN / REGISTRATION -->
+<section id="authScreen">
+  <div class="auth-layout">
+    <div class="auth-banner">
+      <div class="brand" style="color:white">
+        <span class="brand-icon" style="background:#ffffff24">📁</span>
+        <span>SmartFiles</span>
+      </div>
+      <h1>Your documents.<br>Organized intelligently.</h1>
+      <p>Manage your digital documents in one place with intelligent search and an AI-powered assistant.</p>
+      <div class="auth-feature">✓ Easy document management</div>
+      <div class="auth-feature">✓ Intelligent document discovery</div>
+      <div class="auth-feature">✓ AI-assisted document access</div>
+    </div>
+
+    <div class="auth-form">
+      <div id="loginForm">
+        <h2>Welcome back!</h2>
+        <p class="muted">Sign in to your SmartFiles account.</p>
+        <div id="loginNotice" aria-live="polite"></div>
+        <form id="login">
+          <div class="field">
+            <label for="loginEmail">Email address</label>
+            <input id="loginEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+          </div>
+          <div class="field">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Enter your password">
+          </div>
+          <button class="primary" type="submit" id="loginButton">Sign in</button>
+        </form>
+        <p class="muted">New to SmartFiles?
+          <button class="switch-link" id="showRegister" type="button">Create account</button>
+        </p>
+      </div>
+
+      <div id="registerForm" class="hidden">
+        <h2>Create account</h2>
+        <p class="muted">Join SmartFiles to organize your documents.</p>
+        <div id="registerNotice" aria-live="polite"></div>
+        <form id="register">
+          <div class="field">
+            <label for="registerEmail">Email address</label>
+            <input id="registerEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+          </div>
+          <div class="field">
+            <label for="registerPassword">Password</label>
+            <input id="registerPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Create a password">
+          </div>
+          <button class="primary" type="submit" id="registerButton">Create account</button>
+        </form>
+        <p class="muted">Already registered?
+          <button class="switch-link" id="showLogin" type="button">Sign in</button>
+        </p>
+        <p class="demo-note">After registration succeeds, sign in with your new account.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN DASHBOARD -->
+<section id="dashboard" class="hidden">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-icon">📁</span>SmartFiles</div>
+    <div class="nav-label">WORKSPACE</div>
+    <nav aria-label="Workspace">
+      <button class="nav-btn active" data-view="home">▦ &nbsp; Dashboard</button>
+      <button class="nav-btn" data-view="documents">📄 &nbsp; My Documents</button>
+      <button class="nav-btn" data-view="upload">⬆ &nbsp; Upload Documents</button>
+      <button class="nav-btn" data-view="search">⌕ &nbsp; Search</button>
+      <button class="nav-btn" data-view="assistant">✧ &nbsp; AI Assistant</button>
+      <button class="nav-btn" data-view="duplicates">🧩 &nbsp; Duplicate Finder</button>
+      <button class="nav-btn" data-view="comparison">⇄ &nbsp; Document Comparison</button>
+      <button class="nav-btn" data-view="plagiarism">⌕ &nbsp; Plagiarism Checker</button>
+      <button class="nav-btn" data-view="compressor">◉ &nbsp; File Compressor</button>
+      <button class="nav-btn" data-view="optimizer">◈ &nbsp; Storage Optimizer</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="nav-label">ACCOUNT</div>
+      <button class="nav-btn" id="logout">↪ &nbsp; Sign out</button>
+      <div class="user-card">
+        <div class="avatar" id="userAvatar">S</div>
+        <div class="user-details">
+          <strong id="userEmail">SmartFiles User</strong>
+          <small>Personal workspace</small>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h2 id="pageTitle">Dashboard</h2>
+        <div class="muted" style="font-size:13px">Your intelligent document workspace</div>
+      </div>
+      <div class="top-actions">
+        <div class="search-wrap">
+          <input id="searchInput" type="search" aria-label="Search documents by filename, topic, tag, or content" placeholder="Search filenames, topics, and content...">
+          <div class="search-filters" aria-label="Search filters">
+            <select id="searchCategory" aria-label="Filter by category"><option value="">All categories</option><option>Education &amp; Assignments</option><option>Career &amp; Resumes</option><option>Certificates</option><option>Project Reports</option><option>Technical Notes</option><option>Financial Documents</option><option>Presentations</option><option>Images &amp; Scanned Documents</option><option>Other Documents</option></select>
+            <select id="searchType" aria-label="Filter by file type"><option value="">All file types</option><option value="pdf">PDF</option><option value="docx">DOCX</option><option value="txt">TXT</option><option value="csv">CSV</option><option value="xlsx">XLSX</option><option value="pptx">PPTX</option><option value="png">PNG</option><option value="jpg">JPG</option><option value="jpeg">JPEG</option></select>
+            <input id="searchTag" type="search" aria-label="Filter by tag" placeholder="Tag">
+            <label class="search-date">From <input id="searchDateFrom" type="date" aria-label="Uploaded from date"></label>
+            <label class="search-date">To <input id="searchDateTo" type="date" aria-label="Uploaded through date"></label>
+          </div>
+        </div>
+        <button class="primary" id="topUpload" aria-label="Open upload documents">+ Upload</button>
+      </div>
+    </header>
+
+    <div id="apiNotice" aria-live="polite"></div>
+
+    <section id="searchResultsPanel" class="panel search-results-panel hidden" aria-live="polite" aria-busy="false">
+      <div class="section-head" style="margin-top:0"><h2>Search results</h2><span id="searchMethodNote" class="muted"></span></div>
+      <div id="searchNotice" class="muted"></div>
+      <div id="searchResultsList" class="file-list"></div>
+    </section>
+
+    <section id="homeView" class="view active">
+      <div class="welcome">
+        <div>
+          <h1>Welcome to SmartFiles 👋</h1>
+          <p>Keep your documents organized and find what you need faster.</p>
+        </div>
+        <div class="welcome-icon">📚</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-top"><span class="muted">Total Documents</span><span class="stat-icon">📁</span></div><h3 id="totalCount">0</h3><p>Documents in your workspace</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">PDF Files</span><span class="stat-icon">📕</span></div><h3 id="pdfCount">0</h3><p>PDF documents</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">Word Files</span><span class="stat-icon">📝</span></div><h3 id="wordCount">0</h3><p>Word documents</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">Other Files</span><span class="stat-icon">🖼️</span></div><h3 id="otherCount">0</h3><p>Images and other formats</p></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-top"><span class="muted">Processed</span><span class="stat-icon">OK</span></div><h3 id="processedCount">0</h3><p>Documents with searchable text</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">Needs attention</span><span class="stat-icon">!</span></div><h3 id="attentionCount">0</h3><p>Extraction failures or no readable text</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">Exact duplicate groups</span><span class="stat-icon">HASH</span></div><h3 id="dashboardExactCount">0</h3><p>Identical file contents</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">Potential near-duplicates</span><span class="stat-icon">TEXT</span></div><h3 id="dashboardNearCount">0</h3><p>Similar extracted text</p></div>
+      </div>
+      <div class="section-head">
+        <h2>Browse categories</h2>
+      </div>
+      <div class="categories">
+        <button class="category" data-category="PDF"><span class="emoji">📕</span><strong>PDF Documents</strong><small>View PDF files</small></button>
+        <button class="category" data-category="Word"><span class="emoji">📝</span><strong>Word Documents</strong><small>View Word files</small></button>
+        <button class="category" data-category="Image"><span class="emoji">🖼️</span><strong>Images</strong><small>View image files</small></button>
+        <button class="category" data-category="Other"><span class="emoji">📂</span><strong>Other Files</strong><small>View other formats</small></button>
+      </div>
+      <div id="categoryStats" class="category-stats" aria-live="polite"></div>
+
+      <div class="section-head">
+        <div><h2>Workspace analytics</h2><p class="muted">Interactive metrics from your documents and actual compression results.</p></div>
+      </div>
+      <section class="panel analytics-filters" aria-label="Dashboard filters">
+        <div class="field"><label for="analyticsCategory">Category</label><select id="analyticsCategory"><option value="">All categories</option></select></div>
+        <div class="field"><label for="analyticsFileType">File type</label><select id="analyticsFileType"><option value="">All file types</option></select></div>
+        <div class="field"><label for="analyticsDateFrom">From date</label><input id="analyticsDateFrom" type="date"></div>
+        <div class="field"><label for="analyticsDateTo">To date</label><input id="analyticsDateTo" type="date"></div>
+        <button class="secondary" id="applyAnalyticsFilters" type="button">Apply filters</button>
+      </section>
+      <div id="analyticsNotice" aria-live="polite"></div>
+      <div class="analytics-grid">
+        <section class="panel analytics-card"><h3>Documents by category</h3><div id="categoryChart" class="category-chart"></div></section>
+        <section class="panel analytics-card"><h3>Documents by file format</h3><div id="formatChart" class="bar-chart"></div></section>
+        <section class="panel analytics-card"><h3>Monthly uploads</h3><div id="activityChart" class="line-chart"></div></section>
+        <section class="panel analytics-card"><h3>Document processing</h3><div id="processingChart" class="processing-chart"></div></section>
+      </div>
+      <div class="section-head"><h2>Storage and compression</h2></div>
+      <div id="storageStats" class="stats storage-stats"></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-top"><span class="muted">Exact duplicate groups</span><span class="stat-icon">📑</span></div><h3 id="analyticsExactCount">0</h3><p>Within the selected document filters</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">Potential near-duplicates</span><span class="stat-icon">DOC</span></div><h3 id="analyticsNearCount">0</h3><p>Review suggestions, not identity claims</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">Largest document</span><span class="stat-icon">MAX</span></div><h3 id="largestSize">—</h3><p id="largestName">No eligible document yet</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">Compressible files</span><span class="stat-icon">ZIP</span></div><h3 id="compressibleCount">0</h3><p>PDF and supported image formats</p></div>
+      </div>
+
+      <div class="section-head">
+        <div><h2>Recent documents</h2><small class="muted" id="demoCount">No sample documents loaded.</small></div>
+        <div class="section-actions">
+          <button class="secondary" type="button" id="loadDemoDocuments">Load Demo Documents</button>
+          <button class="secondary" id="viewAll">View all</button>
+        </div>
+      </div>
+      <div id="demoNotice" aria-live="polite"></div>
+      <div id="recentFiles" class="file-list"></div>
+    </section>
+
+    <section id="documentsView" class="view">
+      <div class="section-head"><h2>My Documents</h2><div class="toolbar-actions"><button class="secondary" id="reprocessDocuments" type="button">Repair text index</button><button class="secondary" id="refreshFiles" type="button">Refresh</button></div></div>
+      <div id="reprocessNotice" aria-live="polite"></div>
+      <div class="document-toolbar">
+        <div class="field"><label for="documentCategoryFilter">Filter by category</label><select id="documentCategoryFilter" aria-label="Filter documents by category"></select></div>
+        <div class="field"><label for="documentSort">Sort documents</label><select id="documentSort" aria-label="Sort documents">
+          <option value="newest">Newest first</option><option value="oldest">Oldest first</option>
+          <option value="name-asc">Name A to Z</option><option value="name-desc">Name Z to A</option>
+          <option value="category">Category</option>
+        </select></div>
+        <button class="secondary" type="button" id="clearDocumentFilters">Clear filters</button>
+      </div>
+      <div id="documentFiles" class="file-list"></div>
+    </section>
+
+    <section id="detailView" class="view">
+      <div class="detail-actions">
+        <button class="secondary" id="detailBack" type="button">← Back to documents</button>
+        <button class="danger-button" id="deleteDocumentButton" type="button" disabled>Delete document</button>
+        <a class="primary hidden" id="downloadDocument" href="#" download>Download</a>
+      </div>
+      <div id="detailNotice" aria-live="polite"></div>
+      <div id="documentDetail"></div>
+    </section>
+
+    <section id="duplicatesView" class="view">
+      <div class="section-head">
+        <div><h2>Duplicate Document Finder</h2><p class="muted">Find exact duplicate files and similar images in your workspace.</p></div>
+        <button class="primary" id="checkDuplicates">Scan documents</button>
+      </div>
+      <div id="duplicatesNotice" aria-live="polite"></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-top"><span class="muted">Exact duplicate groups</span><span class="stat-icon">📑</span></div><h3 id="exactDuplicateCount">—</h3><p>Files with matching content hashes</p></div>
+        <div class="stat"><div class="stat-top"><span class="muted">Similar image pairs</span><span class="stat-icon">🖼️</span></div><h3 id="similarDuplicateCount">—</h3><p>Images that look alike</p></div>
+      </div>
+      <div class="stats"><div class="stat"><div class="stat-top"><span class="muted">Potential text matches</span><span class="stat-icon">DOC</span></div><h3 id="nearDuplicateCount">—</h3><p>Non-identical documents with similar text</p></div></div>
+      <div class="section-head"><h2>Exact duplicates</h2></div>
+      <div id="exactDuplicatesList"></div>
+      <div class="section-head"><h2>Potential near-duplicates</h2></div>
+      <div id="nearDuplicatesList"></div>
+      <div class="section-head"><h2>Similar images</h2></div>
+      <div id="similarDuplicatesList"></div>
+    </section>
+
+    <section id="searchView" class="view">
+      <div class="section-head"><div><h2>Search your documents</h2><p class="muted">Search filenames and extracted content. Use the search field and filters in the top bar.</p></div></div>
+      <div class="panel"><p>Search results appear below the top bar as you type. Search supports category, file type, tags, and upload-date filters.</p><button class="primary" id="focusSearch" type="button">Start searching</button></div>
+    </section>
+
+    <section id="comparisonView" class="view">
+      <div class="section-head"><div><h2>Document Comparison</h2><p class="muted">Compare extracted text, matching topics, and line-level differences from your documents.</p></div></div>
+      <section class="panel comparison-panel" aria-labelledby="compareHeading">
+        <h3 id="compareHeading">Compare two documents</h3>
+        <div class="comparison-controls">
+          <div class="field"><label for="compareA">First document</label><select id="compareA"></select></div>
+          <div class="field"><label for="compareB">Second document</label><select id="compareB"></select></div>
+          <button class="primary" type="button" id="compareButton" disabled>Compare</button>
+        </div>
+        <div id="compareNotice" aria-live="polite"></div>
+        <div id="compareResults" class="comparison-results" aria-live="polite"></div>
+      </section>
+    </section>
+
+    <section id="plagiarismView" class="view">
+      <div class="section-head plagiarism-page-heading">
+        <div>
+          <span class="plagiarism-eyebrow">DOCUMENT ANALYSIS</span>
+          <h2>Plagiarism Checker</h2>
+          <p class="muted">Review matching passages alongside the websites identified as sources.</p>
+        </div>
+      </div>
+      <section class="panel plagiarism-panel" aria-label="Check a document for plagiarism">
+        <div class="plagiarism-panel-heading">
+          <span class="plagiarism-heading-icon" aria-hidden="true">SCAN</span>
+          <div>
+            <h3>Start a source check</h3>
+            <p class="muted">Upload a document or paste its text to review possible matches.</p>
+          </div>
+        </div>
+        <div class="plagiarism-control-grid">
+          <div class="plagiarism-control-card">
+            <div class="field">
+              <label for="plagiarismFile">Choose a document</label>
+              <input id="plagiarismFile" type="file" accept=".pdf,.docx,.txt">
+              <small class="plagiarism-help-text">Supported formats: PDF, DOCX, and TXT.</small>
+              <details class="plagiarism-paste-option">
+                <summary>Or paste text instead</summary>
+                <label for="plagiarismText">Text to check</label>
+                <textarea id="plagiarismText" rows="6" placeholder="Paste document text here"></textarea>
+              </details>
+            </div>
+            <p class="plagiarism-config-note">Document text is sent to the online checker. Scans may use your prepaid API credits.</p>
+          </div>
+          <aside class="plagiarism-online-card" aria-label="What the results show">
+            <h4>What to expect</h4>
+            <ul class="plagiarism-feature-list">
+              <li><span aria-hidden="true">01</span><div><strong>Matched passages</strong><small>Review the text reported as a match.</small></div></li>
+              <li><span aria-hidden="true">02</span><div><strong>Source websites</strong><small>Open the linked website associated with each result.</small></div></li>
+              <li><span aria-hidden="true">03</span><div><strong>Similarity scores</strong><small>See the percentage returned for each reported match.</small></div></li>
+            </ul>
+          </aside>
+        </div>
+        <div class="plagiarism-actions">
+          <button class="primary plagiarism-scan-button" id="plagiarismScanButton" type="button">Check Plagiarism</button>
+          <span class="plagiarism-action-hint">Results will appear below.</span>
+        </div>
+        <div id="plagiarismProgress" class="plagiarism-progress hidden" role="progressbar" aria-label="Plagiarism scan in progress" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Scan in progress"><span></span></div>
+        <div id="plagiarismNotice" aria-live="polite" aria-atomic="true"></div>
+        <div id="plagiarismReport" class="plagiarism-report" aria-live="polite"></div>
+      </section>
+    </section>
+
+    <section id="compressorView" class="view">
+      <div class="section-head"><div><h2>File Compressor</h2><p class="muted">Create a separate optimized copy; your original document is never overwritten.</p></div></div>
+      <section class="panel compressor-panel">
+        <div class="field"><label for="compressionSourceType">Choose a source</label><select id="compressionSourceType"><option value="existing">An existing SmartFiles document</option><option value="upload">Upload a file for compression</option></select></div>
+        <div class="field" id="compressionExistingField"><label for="compressionDocument">Document</label><select id="compressionDocument"><option value="">Select a PDF or supported image</option></select></div>
+        <div class="field hidden" id="compressionUploadField"><label for="compressionFile">PDF or image file</label><input id="compressionFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp"></div>
+        <div class="field"><label for="compressionMode">Compression mode</label><select id="compressionMode"><option value="balanced" selected>Balanced — recommended</option><option value="lossless">Lossless — preserve image quality</option><option value="maximum">Maximum compression — image quality may decrease</option></select><small class="muted">PDF text and page layout stay vector based in every mode. Maximum compression may reduce embedded image detail.</small></div>
+        <div class="field compression-image-option hidden" id="compressionQualityField"><label for="compressionQuality">Image quality: <span id="compressionQualityValue">85</span></label><input id="compressionQuality" type="range" min="20" max="95" value="85"><small class="muted">Applies to JPEG/WebP images and embedded PDF images. Lower quality can reduce size and image detail.</small></div>
+        <div class="field compression-image-option hidden" id="compressionDimensionField"><label for="compressionMaxDimension">Optional maximum image dimension in pixels</label><input id="compressionMaxDimension" type="number" min="256" max="12000" step="1" placeholder="Use the mode default"><small class="muted">Oversized source and embedded PDF images are downsampled to this limit when set.</small></div>
+        <button class="primary" id="compressButton" type="button">Compress file</button>
+        <div id="compressionProgress" class="compression-progress hidden" role="progressbar" aria-label="Compression in progress"><span></span></div>
+        <div id="compressionNotice" aria-live="polite"></div>
+        <div id="compressionResult" class="compression-result hidden"></div>
+      </section>
+      <div class="section-head"><h2>Compression history</h2><button class="secondary" id="refreshCompressionHistory" type="button">Refresh history</button></div>
+      <div id="compressionHistory" class="file-list"></div>
+    </section>
+
+    <section id="optimizerView" class="view">
+      <div class="section-head"><div><h2>Smart Storage Optimizer</h2><p class="muted">Review large files, exact duplicates, near-duplicates, and measured compression results before taking action.</p></div><button class="secondary" id="refreshOptimizer" type="button">Refresh suggestions</button></div>
+      <div id="optimizerNotice" aria-live="polite"></div>
+      <div id="optimizerStorage" class="stats"></div>
+      <div class="section-head"><h2>Largest documents</h2></div>
+      <div id="optimizerLargest" class="file-list"></div>
+      <div class="section-head"><h2>Exact duplicate files</h2></div>
+      <p class="muted">Removing redundant copies may free space. SmartFiles does not delete files automatically; review and confirm any deletion yourself in My Documents.</p>
+      <div id="optimizerExact"></div>
+      <div class="section-head"><h2>Potential near-duplicates</h2></div>
+      <div id="optimizerNear"></div>
+      <div class="section-head"><h2>Measured compression history</h2></div>
+      <div id="optimizerHistory" class="file-list"></div>
+      <p class="demo-note">Possible savings are not estimated. The confirmed total includes only successful output files that still exist in storage.</p>
+    </section>
+
+    <section id="uploadView" class="view">
+      <div class="section-head"><h2>Upload documents</h2></div>
+      <div class="upload-box">
+        <div class="big-icon">☁️</div>
+        <h2>Upload your documents</h2>
+        <p class="muted">Select PDF, DOCX, TXT, CSV, XLSX, PPTX, PNG, JPG, or JPEG files. Multiple files can be uploaded together.</p>
+        <label class="sr-only" for="fileInput">Choose documents to upload</label>
+        <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.pptx,.png,.jpg,.jpeg,.webp,.bmp,.gif,.mp4,.mkv,.mov,.avi,.webm">
+        <br><button class="primary" id="uploadButton">Upload selected files</button>
+        <p class="demo-note">Legacy .doc files must be saved as .docx first. ZIP archives are unsupported. Files are validated before storage; if extraction is unavailable, the original can still be previewed or downloaded where supported.</p>
+        <div id="uploadNotice" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="assistantView" class="view">
+      <div class="section-head"><h2>AI Document Assistant</h2></div>
+      <div class="chat-box">
+        <p class="muted" id="assistantStatusNote">SmartFiles searches your own documents first. Conversational answers are used only when a Gemini key is configured; otherwise matching passages are quoted with sources.</p>
+        <div id="chatMessages" class="chat-messages">
+            <div class="message">Ask about your documents. SmartFiles retrieves matching passages and quotes them with sources. If Gemini is configured, it can phrase an answer from those passages; it still will not invent file contents.</div>
+        </div>
+        <div class="field assistant-scope"><label for="assistantDocument">Search in</label><select id="assistantDocument"><option value="">All my documents</option></select></div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" required maxlength="2000" aria-label="Ask a question about your documents" placeholder="Ask a question about your documents...">
+          <button class="primary" type="submit" id="chatSend">Send</button>
+        </form>
+        <div id="chatNotice" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+</section>
+
+
+<script src="/static/js/app.js" defer></script>
+<script src="/static/js/documents.js" defer></script>
+<script src="/static/js/search.js" defer></script>
+<script src="/static/js/duplicates.js" defer></script>
+<script src="/static/js/assistant.js" defer></script>
+<script src="/static/js/comparison.js" defer></script>
+<script src="/static/js/plagiarism.js" defer></script>
+<script src="/static/js/analytics.js" defer></script>
+<script src="/static/js/compressor.js" defer></script>
+</body>
+</html>

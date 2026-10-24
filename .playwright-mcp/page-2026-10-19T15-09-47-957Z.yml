@@ -1,0 +1,175 @@
+- generic [ref=f2e41]:
+  - complementary [ref=f2e42]:
+    - generic [ref=f2e43]:
+      - generic [ref=f2e44]: 📁
+      - text: SmartFiles
+    - generic [ref=f2e45]: WORKSPACE
+    - navigation "Workspace" [ref=f2e46]:
+      - button "▦ Dashboard" [ref=f2e47] [cursor=pointer]
+      - button "📄 My Documents" [ref=f2e48] [cursor=pointer]
+      - button "⬆ Upload Documents" [ref=f2e49] [cursor=pointer]
+      - button "⌕ Search" [ref=f2e50] [cursor=pointer]
+      - button "✧ AI Assistant" [ref=f2e51] [cursor=pointer]
+      - button "🧩 Duplicate Finder" [ref=f2e52] [cursor=pointer]
+      - button "⇄ Document Comparison" [ref=f2e53] [cursor=pointer]
+      - button "⌕ Plagiarism Checker" [ref=f2e54] [cursor=pointer]
+      - button "◉ File Compressor" [ref=f2e55] [cursor=pointer]
+      - button "◈ Storage Optimizer" [ref=f2e56] [cursor=pointer]
+    - generic [ref=f2e57]:
+      - generic [ref=f2e58]: ACCOUNT
+      - button "↪ Sign out" [ref=f2e59] [cursor=pointer]
+      - generic [ref=f2e60]:
+        - generic [ref=f2e61]: B
+        - generic [ref=f2e62]:
+          - strong [ref=f2e63]: browser-plagiarism-test@example.test
+          - text: Personal workspace
+  - main [ref=f2e64]:
+    - generic [ref=f2e65]:
+      - generic [ref=f2e66]:
+        - heading "Plagiarism Checker" [level=2] [ref=f2e237]
+        - generic [ref=f2e68]: Your intelligent document workspace
+      - generic [ref=f2e69]:
+        - generic [ref=f2e70]:
+          - searchbox "Search documents by filename, topic, tag, or content" [ref=f2e71]
+          - generic "Search filters" [ref=f2e72]:
+            - combobox "Filter by category" [ref=f2e73]:
+              - option "All categories" [selected]
+              - option "Education & Assignments"
+              - option "Career & Resumes"
+              - option "Certificates"
+              - option "Project Reports"
+              - option "Technical Notes"
+              - option "Financial Documents"
+              - option "Presentations"
+              - option "Images & Scanned Documents"
+              - option "Other Documents"
+            - combobox "Filter by file type" [ref=f2e74]:
+              - option "All file types" [selected]
+              - option "PDF"
+              - option "DOCX"
+              - option "TXT"
+              - option "CSV"
+              - option "XLSX"
+              - option "PPTX"
+              - option "PNG"
+              - option "JPG"
+              - option "JPEG"
+            - searchbox "Filter by tag" [ref=f2e75]
+            - generic [ref=f2e76]:
+              - text: From
+              - textbox "Uploaded from date" [ref=f2e77]
+            - generic [ref=f2e78]:
+              - text: To
+              - textbox "Uploaded through date" [ref=f2e79]
+        - button "Open upload documents" [ref=f2e80] [cursor=pointer]: + Upload
+    - generic [ref=f2e238]:
+      - generic [ref=f2e240]:
+        - heading "Plagiarism & Source Checker" [level=2] [ref=f2e241]
+        - paragraph [ref=f2e242]: Compare extracted passages with your own documents and optionally discover possible web sources.
+      - generic [ref=f2e243]:
+        - generic [ref=f2e244]:
+          - generic [ref=f2e245]: Uploaded PDF, DOCX, or TXT document
+          - combobox "Uploaded PDF, DOCX, or TXT document" [ref=f2e246]:
+            - option "Select a document"
+            - option "02_sample_project_documentation.docx" [selected]
+            - option "02_sample_project_documentation.docx"
+        - generic [ref=f2e247]:
+          - generic [ref=f2e248]: Upload a PDF, DOCX, or TXT document
+          - button "Upload a PDF, DOCX, or TXT document" [ref=f2e249]
+          - button "Upload document" [ref=f2e250] [cursor=pointer]
+          - generic [ref=f2e261]: Uploaded 02_sample_project_documentation.docx; it is selected and ready to scan.
+        - generic [ref=f2e251]:
+          - checkbox "Enable online source discovery for this scan. Only selected extracted passages are sent to Brave Search; your whole document is not uploaded." [ref=f2e252]
+          - generic [ref=f2e253]: Enable online source discovery for this scan. Only selected extracted passages are sent to Brave Search; your whole document is not uploaded.
+        - paragraph [ref=f2e254]: Online source discovery is optional. Brave Search results and snippets can suggest possible sources but do not verify the full webpage. Local comparison works without an API key.
+        - button "Check Plagiarism" [ref=f2e255] [cursor=pointer]
+        - generic [ref=f2e262]: Scan complete.
+        - generic [ref=f2e263]:
+          - generic [ref=f2e264]:
+            - heading "02_sample_project_documentation.docx" [level=3] [ref=f2e265]
+            - generic [ref=f2e266]: completed
+          - paragraph [ref=f2e267]: Scanned 10/19/2026, 8:39:46 PM
+          - generic [ref=f2e268]:
+            - generic [ref=f2e269]:
+              - generic [ref=f2e270]: Exact-word coverage
+              - strong [ref=f2e271]: 100%
+            - generic [ref=f2e272]:
+              - generic [ref=f2e273]: Possible sources
+              - strong [ref=f2e274]: "1"
+            - generic [ref=f2e275]:
+              - generic [ref=f2e276]: Exact passages
+              - strong [ref=f2e277]: "11"
+            - generic [ref=f2e278]:
+              - generic [ref=f2e279]: Approximate passages
+              - strong [ref=f2e280]: "0"
+            - generic [ref=f2e281]:
+              - generic [ref=f2e282]: Analyzed words
+              - strong [ref=f2e283]: "160"
+            - generic [ref=f2e284]:
+              - generic [ref=f2e285]: Unmatched analyzed text
+              - strong [ref=f2e286]: 0%
+            - generic [ref=f2e287]:
+              - generic [ref=f2e288]: Passages skipped
+              - strong [ref=f2e289]: "0"
+            - generic [ref=f2e290]:
+              - generic [ref=f2e291]: Online passages not searched
+              - strong [ref=f2e292]: "0"
+          - paragraph [ref=f2e293]: Local-only scan. Online search was not enabled.
+          - heading "Matches in your uploaded documents" [level=3] [ref=f2e294]
+          - article [ref=f2e295]:
+            - strong [ref=f2e296]: 02_sample_project_documentation.docx
+            - generic [ref=f2e297]:
+              - generic [ref=f2e298]: Exact text match
+              - blockquote [ref=f2e299]: "Purpose: WaterWise is a fictional student prototype that helps community-garden volunteers review soil moisture readings before watering."
+              - paragraph [ref=f2e300]: "Evidence: Purpose: WaterWise is a fictional student prototype that helps community-garden volunteers review soil moisture readings before watering."
+            - generic [ref=f2e301]:
+              - generic [ref=f2e302]: Exact text match
+              - blockquote [ref=f2e303]: "Components: A sensor produces a timestamped percentage, a gateway validates the payload, a local SQLite database stores readings, and a browser dashboard renders a weekly chart."
+              - paragraph [ref=f2e304]: "Evidence: Components: A sensor produces a timestamped percentage, a gateway validates the payload, a local SQLite database stores readings, and a browser dashboard renders a weekly chart."
+            - generic [ref=f2e305]:
+              - generic [ref=f2e306]: Exact text match
+              - blockquote [ref=f2e307]: "Example event: Plot C reads 24 percent at 09:15."
+              - paragraph [ref=f2e308]: "Evidence: Example event: Plot C reads 24 percent at 09:15."
+            - generic [ref=f2e309]:
+              - generic [ref=f2e310]: Exact text match
+              - blockquote [ref=f2e311]: The application checks that the value is within the permitted range and records sensor ID, calibration date, and quality status.
+              - paragraph [ref=f2e312]: "Evidence: The application checks that the value is within the permitted range and records sensor ID, calibration date, and quality status."
+            - generic [ref=f2e313]:
+              - generic [ref=f2e314]: Exact text match
+              - blockquote [ref=f2e315]: "Privacy: The demonstration stores no real resident or garden-owner information."
+              - paragraph [ref=f2e316]: "Evidence: Privacy: The demonstration stores no real resident or garden-owner information."
+            - generic [ref=f2e317]:
+              - generic [ref=f2e318]: Exact text match
+              - blockquote [ref=f2e319]: Sample contacts use the reserved example.test domain.
+              - paragraph [ref=f2e320]: "Evidence: Sample contacts use the reserved example.test domain."
+            - generic [ref=f2e321]:
+              - generic [ref=f2e322]: Exact text match
+              - blockquote [ref=f2e323]: "Testing plan: Check valid and missing readings, duplicate sensor events, boundary values, and a gateway outage."
+              - paragraph [ref=f2e324]: "Evidence: Testing plan: Check valid and missing readings, duplicate sensor events, boundary values, and a gateway outage."
+            - generic [ref=f2e325]:
+              - generic [ref=f2e326]: Exact text match
+              - blockquote [ref=f2e327]: A missing reading must not be interpreted as dry soil.
+              - paragraph [ref=f2e328]: "Evidence: A missing reading must not be interpreted as dry soil."
+            - generic [ref=f2e329]:
+              - generic [ref=f2e330]: Exact text match
+              - blockquote [ref=f2e331]: "Known limitations: The threshold is configurable and must be calibrated for each sensor and planting bed."
+              - paragraph [ref=f2e332]: "Evidence: Known limitations: The threshold is configurable and must be calibrated for each sensor and planting bed."
+            - generic [ref=f2e333]:
+              - generic [ref=f2e334]: Exact text match
+              - blockquote [ref=f2e335]: The prototype does not control a pump.
+              - paragraph [ref=f2e336]: "Evidence: The prototype does not control a pump."
+            - generic [ref=f2e337]:
+              - generic [ref=f2e338]: Exact text match
+              - blockquote [ref=f2e339]: "Release checklist: Back up the database, confirm the sample-data label, verify the chart legend, and record the tested application version."
+              - paragraph [ref=f2e340]: "Evidence: Release checklist: Back up the database, confirm the sample-data label, verify the chart legend, and record the tested application version."
+          - paragraph [ref=f2e341]: Eligible passages contain at least five words. Exact-match percentage is the proportion of words in the analyzed eligible passages covered by exact normalized matches. Approximate matches use word-set Jaccard overlap of at least 0.78 and are not counted as verified similarity. Punctuation is preserved; exact matching uses Unicode NFKC, case-folding, and whitespace normalization. At most 300 passages are analyzed and up to four distinctive passages are searched online.
+          - paragraph [ref=f2e342]: Text similarity does not by itself prove plagiarism. Review the matching passages and sources manually.
+      - generic [ref=f2e256]:
+        - heading "Previous reports" [level=2] [ref=f2e257]
+        - button "Refresh reports" [ref=f2e258] [cursor=pointer]
+      - generic [ref=f2e343] [cursor=pointer]:
+        - generic [ref=f2e344]:
+          - strong [ref=f2e345]: 02_sample_project_documentation.docx
+          - generic [ref=f2e346]: 10/19/2026, 8:39:46 PM | completed
+        - generic [ref=f2e347]: 100% exact
+        - button "View report" [ref=f2e348]

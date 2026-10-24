@@ -1,0 +1,160 @@
+- generic [ref=f2e2]:
+  - complementary [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - generic [ref=f2e5]: 📁
+      - text: SmartFiles
+    - navigation "Workspace" [ref=f2e6]:
+      - button "▦ Dashboard" [ref=f2e7] [cursor=pointer]
+      - button "📄 My Documents" [ref=f2e8] [cursor=pointer]
+      - button "⬆ Upload Documents" [ref=f2e9] [cursor=pointer]
+      - button "⌕ Search" [ref=f2e10] [cursor=pointer]
+      - button "✧ AI Assistant" [ref=f2e11] [cursor=pointer]
+      - button "🧩 Duplicate Finder" [ref=f2e12] [cursor=pointer]
+      - button "⇄ Document Comparison" [ref=f2e13] [cursor=pointer]
+      - button "⌕ Plagiarism Checker" [active] [ref=f2e14] [cursor=pointer]
+      - button "◉ File Compressor" [ref=f2e15] [cursor=pointer]
+      - button "◈ Storage Optimizer" [ref=f2e16] [cursor=pointer]
+    - generic [ref=f2e17]:
+      - button "↪ Sign out" [ref=f2e18] [cursor=pointer]
+      - generic [ref=f2e19]:
+        - generic [ref=f2e20]: L
+        - generic [ref=f2e21]:
+          - strong [ref=f2e22]: lvandana608@gmail.com
+          - text: Personal workspace
+  - main [ref=f2e23]:
+    - generic [ref=f2e24]:
+      - generic [ref=f2e25]:
+        - heading "Plagiarism Checker" [level=2] [ref=f2e378]
+        - generic [ref=f2e27]: Your intelligent document workspace
+      - generic [ref=f2e28]:
+        - generic [ref=f2e29]:
+          - searchbox "Search documents by filename, topic, tag, or content" [ref=f2e30]
+          - generic "Search filters" [ref=f2e31]:
+            - combobox "Filter by category" [ref=f2e32]:
+              - option "All categories" [selected]
+              - option "Education & Assignments"
+              - option "Career & Resumes"
+              - option "Certificates"
+              - option "Project Reports"
+              - option "Technical Notes"
+              - option "Financial Documents"
+              - option "Presentations"
+              - option "Images & Scanned Documents"
+              - option "Other Documents"
+            - combobox "Filter by file type" [ref=f2e33]:
+              - option "All file types" [selected]
+              - option "PDF"
+              - option "DOCX"
+              - option "TXT"
+              - option "CSV"
+              - option "XLSX"
+              - option "PPTX"
+              - option "PNG"
+              - option "JPG"
+              - option "JPEG"
+            - searchbox "Filter by tag" [ref=f2e34]
+            - generic [ref=f2e35]:
+              - text: From
+              - textbox "Uploaded from date" [ref=f2e36]
+            - generic [ref=f2e37]:
+              - text: To
+              - textbox "Uploaded through date" [ref=f2e38]
+        - button "Open upload documents" [ref=f2e39] [cursor=pointer]: + Upload
+    - generic [ref=f2e379]:
+      - generic [ref=f2e381]:
+        - generic [ref=f2e382]: DOCUMENT INTEGRITY
+        - heading "Plagiarism & Source Checker" [level=2] [ref=f2e383]
+        - paragraph [ref=f2e384]: Review text overlap in your own documents, with optional Firecrawl source discovery.
+      - region [ref=f2e385]:
+        - generic [ref=f2e386]:
+          - generic [aria-hidden] [ref=f2e387]: ⌕
+          - generic [ref=f2e388]:
+            - heading "Start a document review" [level=3] [ref=f2e389]
+            - paragraph [ref=f2e390]: Choose an uploaded document or add a PDF, DOCX, or TXT file.
+        - generic [ref=f2e391]:
+          - generic [ref=f2e392]:
+            - generic [ref=f2e393]:
+              - generic [ref=f2e394]: Document to check
+              - combobox "Document to check" [ref=f2e395]:
+                - option "Select a document" [selected]
+                - option "DSA_MODULE_1.pdf"
+                - option "MADLabManual.docx"
+                - option "Vandana L Resume.pdf"
+                - option "team_meeting_notes.docx"
+                - option "team_meeting_notes.docx"
+                - option "python_study_guide.pdf"
+                - option "team_meeting_notes.docx"
+                - option "trip_plan_coorg.txt"
+                - option "team_meeting_notes.docx"
+                - option "team_meeting_notes.docx"
+                - option "python_study_guide.pdf"
+                - option "laptop_purchase_invoice.txt"
+                - option "laptop_purchase_invoice.txt"
+                - option "internship_completion_certificate.txt"
+                - option "hospital_report_copy.txt"
+                - option "hospital_management_project_report.txt"
+                - option "dbms_notes_revised.txt"
+                - option "dbms_notes_revised.txt"
+                - option "dbms_lecture_notes.txt"
+                - option "asha_rao_resume.txt"
+            - generic [ref=f2e396]:
+              - generic [ref=f2e397]:
+                - generic [ref=f2e398]: Or upload a document
+                - button "Or upload a document" [ref=f2e399]
+              - button "Upload document" [ref=f2e400] [cursor=pointer]
+          - generic [ref=f2e401]:
+            - generic [ref=f2e402] [cursor=pointer]:
+              - checkbox "Include online source discovery Use Firecrawl to search selected passages and compare any returned page text. Your complete document is not sent." [ref=f2e403]
+              - generic [ref=f2e404]:
+                - strong [ref=f2e405]: Include online source discovery
+                - generic [ref=f2e406]: Use Firecrawl to search selected passages and compare any returned page text. Your complete document is not sent.
+            - paragraph [ref=f2e407]: Online discovery requires FIRECRAWL_API_KEY on the backend. Local comparison works without an API key and remains available if Firecrawl cannot run.
+        - generic [ref=f2e408]:
+          - button "Check document" [disabled] [ref=f2e409]:
+            - generic [aria-hidden] [ref=f2e410]: ⌕
+            - text: Check document
+          - generic [ref=f2e411]: Similarity is a review signal, not a plagiarism verdict.
+        - generic [ref=f2e413]:
+          - generic [aria-hidden] [ref=f2e414]: ⌕
+          - heading "Your report will appear here" [level=3] [ref=f2e415]
+          - paragraph [ref=f2e416]: Select a document and start a review to see match summaries and passage coverage.
+      - generic [ref=f2e417]:
+        - heading "Previous reports" [level=2] [ref=f2e418]
+        - button "Refresh reports" [ref=f2e419] [cursor=pointer]
+      - generic [ref=f2e420]:
+        - generic [ref=f2e421] [cursor=pointer]:
+          - generic [ref=f2e422]:
+            - strong [ref=f2e423]: DSA_MODULE_1.pdf
+            - generic [ref=f2e424]: 10/19/2026, 10:57:39 PM | completed_with_warnings
+          - generic [ref=f2e425]: 0% local exact / 0% local approximate
+          - button "View report" [ref=f2e426]
+        - generic [ref=f2e427] [cursor=pointer]:
+          - generic [ref=f2e428]:
+            - strong [ref=f2e429]: MADLabManual.docx
+            - generic [ref=f2e430]: 10/19/2026, 10:49:01 PM | completed_with_warnings
+          - generic [ref=f2e431]: 0% local exact / 0% local approximate
+          - button "View report" [ref=f2e432]
+        - generic [ref=f2e433] [cursor=pointer]:
+          - generic [ref=f2e434]:
+            - strong [ref=f2e435]: MADLabManual.docx
+            - generic [ref=f2e436]: 10/19/2026, 10:15:13 PM | completed_with_warnings
+          - generic [ref=f2e437]: 0% local exact / 0% local approximate
+          - button "View report" [ref=f2e438]
+        - generic [ref=f2e439] [cursor=pointer]:
+          - generic [ref=f2e440]:
+            - strong [ref=f2e441]: MADLabManual.docx
+            - generic [ref=f2e442]: 10/19/2026, 10:07:29 PM | completed_with_warnings
+          - generic [ref=f2e443]: 0% local exact / 0% local approximate
+          - button "View report" [ref=f2e444]
+        - generic [ref=f2e445] [cursor=pointer]:
+          - generic [ref=f2e446]:
+            - strong [ref=f2e447]: MADLabManual.docx
+            - generic [ref=f2e448]: 10/19/2026, 9:37:35 PM | completed_with_warnings
+          - generic [ref=f2e449]: 0% local exact / 0% local approximate
+          - button "View report" [ref=f2e450]
+        - generic [ref=f2e451] [cursor=pointer]:
+          - generic [ref=f2e452]:
+            - strong [ref=f2e453]: Vandana L Resume.pdf
+            - generic [ref=f2e454]: 10/19/2026, 8:05:24 PM | completed_with_warnings
+          - generic [ref=f2e455]: 0% local exact / Unavailable local approximate
+          - button "View report" [ref=f2e456]
