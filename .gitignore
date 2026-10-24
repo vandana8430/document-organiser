@@ -3,11 +3,17 @@ __pycache__/
 .pytest_cache/
 .venv/
 .venv311/
+<<<<<<< HEAD
 .venv-academic-check/
 venv/
 env/
 .env
 /services/key.env
+=======
+venv/
+env/
+.env
+>>>>>>> 2922d5d1b3218f61a8050ce3be58ab4c8c017d15
 *.log
 *.wav
 backups/

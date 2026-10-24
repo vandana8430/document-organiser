@@ -1,0 +1,98 @@
+INFO:     127.0.0.1:54923 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54931 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54931 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54931 - "GET /api/dashboard HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:63488 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59358 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51669 - "GET /static/js/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56861 - "GET /static/js/search.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52260 - "GET /static/js/documents.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54825 - "GET /static/js/assistant.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59789 - "GET /static/js/duplicates.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54825 - "GET /static/js/comparison.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52260 - "GET /api/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:52260 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55684 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55684 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55684 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54437 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62495 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62495 - "GET /api/files HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62495 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61523 - "POST /api/compare HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64491 - "POST /api/compare HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54215 - "GET /api/duplicates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51651 - "POST /api/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51651 - "POST /api/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53893 - "POST /api/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62378 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62378 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61562 - "GET /static/js/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62531 - "GET /static/js/search.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54155 - "GET /static/js/documents.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65525 - "GET /static/js/assistant.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61429 - "GET /static/js/duplicates.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62378 - "GET /static/js/comparison.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62378 - "GET /api/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:55527 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55527 - "GET /static/css/style.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:64048 - "GET /static/js/app.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:64048 - "GET /static/js/documents.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58900 - "GET /api/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:55527 - "GET /static/js/search.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:64048 - "GET /static/js/comparison.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50182 - "GET /static/js/assistant.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:55523 - "GET /static/js/duplicates.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:55523 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55523 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55523 - "GET /api/files HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55523 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58109 - "POST /api/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63638 - "POST /api/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57642 - "POST /api/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55181 - "POST /api/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50155 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50155 - "GET /static/css/style.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60589 - "GET /static/js/app.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62086 - "GET /static/js/documents.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63160 - "GET /static/js/search.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:65131 - "GET /static/js/assistant.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50883 - "GET /static/js/duplicates.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50883 - "GET /static/js/comparison.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50883 - "GET /api/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:56870 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56870 - "GET /static/css/style.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61928 - "GET /static/js/app.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62531 - "GET /static/js/documents.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53510 - "GET /static/js/duplicates.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52138 - "GET /static/js/assistant.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58043 - "GET /static/js/search.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56870 - "GET /api/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:61928 - "GET /static/js/comparison.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61928 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61928 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61928 - "GET /api/files HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61928 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61738 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61738 - "GET /static/css/style.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:54424 - "GET /static/js/app.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:54424 - "GET /static/js/documents.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61738 - "GET /static/js/search.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:54424 - "GET /static/js/duplicates.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50444 - "GET /static/js/comparison.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:55267 - "GET /api/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:57552 - "GET /static/js/assistant.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52835 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /static/css/style.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52835 - "GET /static/js/app.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57426 - "GET /static/js/assistant.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50675 - "GET /static/js/documents.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:49363 - "GET /static/js/search.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58045 - "GET /static/js/duplicates.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52835 - "GET /static/js/comparison.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52835 - "GET /api/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:52835 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52835 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52835 - "GET /api/files HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52835 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52835 - "GET /api/duplicates HTTP/1.1" 200 OK
