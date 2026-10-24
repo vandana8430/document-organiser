@@ -38,8 +38,10 @@ function plagiarismOnlineFailure(report) {
 }
 
 function plagiarismVerifiedMatches(report) {
+  const supportedProviders = new Set(["crossref", "openalex", "semantic_scholar", "quetext", "tavily"]);
   const verifiedUrls = new Set((Array.isArray(report.sources) ? report.sources : [])
-    .filter(source => source && source.provider === "quetext" && source.verification === "provider_match")
+    .filter(source => source && supportedProviders.has(source.provider)
+      && ["provider_match", "provider_text_match", "accessible_full_text"].includes(source.verification))
     .map(source => plagiarismSafeUrl(source.url))
     .filter(Boolean));
   const found = [];
@@ -47,7 +49,8 @@ function plagiarismVerifiedMatches(report) {
   for (const passageMatch of (Array.isArray(report.online_matches) ? report.online_matches : [])) {
     if (!passageMatch || typeof passageMatch.passage !== "string") continue;
     for (const source of (Array.isArray(passageMatch.sources) ? passageMatch.sources : [])) {
-      if (!source || source.provider !== "quetext" || source.verification !== "provider_match") continue;
+      if (!source || !supportedProviders.has(source.provider)
+          || !["provider_match", "provider_text_match", "accessible_full_text"].includes(source.verification)) continue;
       const url = plagiarismSafeUrl(source && source.url);
       if (!url || !verifiedUrls.has(url)) continue;
       const passage = typeof source.matched_text === "string" && source.matched_text.trim() ? source.matched_text : passageMatch.passage;
@@ -57,6 +60,9 @@ function plagiarismVerifiedMatches(report) {
       found.push({
         passage,
         evidence: typeof source.evidence === "string" ? source.evidence.trim() : "",
+        provider: source.provider,
+        authors: Array.isArray(source.authors) ? source.authors : [],
+        doi: source.doi || "",
         title: typeof source.title === "string" && source.title.trim() ? source.title.trim() : new URL(url).hostname,
         url,
         matchType: source.match_type || passageMatch.match_type || "exact",
@@ -77,9 +83,26 @@ function renderPlagiarismResult(report) {
     return;
   }
   const matches = plagiarismVerifiedMatches(report);
-  const overallScore = Number(report.quetext_score_percent);
-  if (report.quetext_score_percent !== null && report.quetext_score_percent !== undefined && Number.isFinite(overallScore)) {
-    plagiarismReport.appendChild(plagiarismElement("p", "notice", `Overall similarity score: ${Math.max(0, Math.min(100, overallScore)).toFixed(1)}%`));
+  if (Number(report.academic_passages_skipped) > 0) {
+    plagiarismReport.appendChild(plagiarismElement("p", "notice", `Partial passage coverage: searched ${report.academic_passages_searched} of ${report.academic_passages_searched + report.academic_passages_skipped} passages to limit provider requests.`));
+  }
+  if (Number(report.searches_failed) > 0) {
+    plagiarismReport.appendChild(plagiarismElement("p", "notice error", `${report.searches_failed} provider searches failed. Results and coverage are partial.`));
+  }
+  const legacyScore = Number(report.quetext_score_percent);
+  if (report.quetext_score_percent !== null && report.quetext_score_percent !== undefined && Number.isFinite(legacyScore)) {
+    plagiarismReport.appendChild(plagiarismElement("p", "notice", `Overall similarity score: ${Math.max(0, Math.min(100, legacyScore)).toFixed(1)}%`));
+  } else if (report.academic_coverage_percent !== null && report.academic_coverage_percent !== undefined) {
+    const exactPercent = Number(report.academic_coverage_percent);
+    if (Number.isFinite(exactPercent)) {
+      plagiarismReport.appendChild(plagiarismElement("p", "notice", `Passages matched against accessible academic full text: ${Math.max(0, Math.min(100, exactPercent)).toFixed(1)}%`));
+    }
+  } else if (report.online_search_provider === "tavily" && report.online_exact_similarity_percent !== null
+      && report.online_exact_similarity_percent !== undefined) {
+    const exactPercent = Number(report.online_exact_similarity_percent);
+    if (Number.isFinite(exactPercent)) {
+      plagiarismReport.appendChild(plagiarismElement("p", "notice", `Verified passage coverage in searched web results: ${Math.max(0, Math.min(100, exactPercent)).toFixed(1)}%`));
+    }
   }
   const completeStatuses = ["completed", "completed_with_errors", "no_suitable_passages"];
   if (!completeStatuses.includes(report.online_search_status) && !matches.length) {
@@ -97,7 +120,10 @@ function renderPlagiarismResult(report) {
     if (report.online_search_status === "no_suitable_passages") {
       plagiarismReport.appendChild(plagiarismElement("p", "notice", "No matching content was found."));
     } else {
-      plagiarismReport.appendChild(plagiarismElement("p", "notice", "No matching website content was found."));
+      const emptyText = report.online_search_provider === "quetext"
+        ? "No matching website content was found."
+        : "No matching academic full text was found.";
+      plagiarismReport.appendChild(plagiarismElement("p", "notice", emptyText));
     }
     return;
   }
@@ -113,8 +139,10 @@ function renderPlagiarismResult(report) {
   const list = plagiarismElement("div", "plagiarism-match-list");
   sources.forEach(source => {
     const card = plagiarismElement("article", "plagiarism-match-card");
-    card.appendChild(plagiarismElement("h3", "plagiarism-section-title", "Website source"));
+    card.appendChild(plagiarismElement("h3", "plagiarism-section-title", "Academic paper"));
     card.appendChild(plagiarismElement("p", "", source.title));
+    const authorNames = [...new Set(source.matches.flatMap(match => match.authors || []))];
+    if (authorNames.length) card.appendChild(plagiarismElement("p", "muted", `Authors: ${authorNames.join(", ")}`));
     const link = plagiarismElement("a", "plagiarism-source-url", source.url);
     link.href = source.url;
     link.target = "_blank";
@@ -134,7 +162,10 @@ function renderPlagiarismResult(report) {
       }
       if (match.similarityPercent !== null || match.similarity !== null) {
         const percent = match.similarityPercent !== null ? match.similarityPercent : match.similarity * 100;
-        card.appendChild(plagiarismElement("p", "muted", `Similarity: ${Number(percent.toFixed(1))}%`));
+      const label = match.provider === "tavily" ? "Verified word-set Jaccard similarity"
+        : match.provider === "quetext" ? "Provider reported similarity"
+          : "Similarity against accessible source text";
+        card.appendChild(plagiarismElement("p", "muted", `${label}: ${Number(percent.toFixed(1))}%`));
       }
     });
     list.appendChild(card);
@@ -157,7 +188,9 @@ async function waitForPlagiarismResult(scanId) {
     }
     if (["completed", "completed_with_warnings", "failed"].includes(report.status)) return report;
     const progress = Number(report.quetext_progress_percent);
-    const progressText = Number.isFinite(progress) ? `Online checker is processing the report (${progress.toFixed(0)}%).` : "Online checker is processing the report.";
+    const progressText = report.online_search_provider === "quetext" && Number.isFinite(progress)
+      ? `Online checker is processing the report (${progress.toFixed(0)}%).`
+      : "Searching Crossref, OpenAlex, and Semantic Scholar for academic papers and accessible source text.";
     plagiarismProgress.setAttribute("aria-valuetext", progressText);
     notice("plagiarismNotice", progressText);
     if (report.updated_at) {
@@ -171,19 +204,19 @@ async function waitForPlagiarismResult(scanId) {
 }
 
 plagiarismScanButton.addEventListener("click", async () => {
-  const selectedFile = plagiarismFile.files && plagiarismFile.files[0];
+  const selectedFiles = Array.from(plagiarismFile.files || []);
   const pastedText = plagiarismText ? plagiarismText.value.trim() : "";
   if (plagiarismBusy) return;
-  if (selectedFile && pastedText) {
+  if (selectedFiles.length && pastedText) {
     notice("plagiarismNotice", "Choose a file or paste text, not both.", "error");
     return;
   }
-  const file = selectedFile || (pastedText ? new File([pastedText], "pasted-text.txt", {type: "text/plain"}) : null);
-  if (!file) {
+  const files = selectedFiles.length ? selectedFiles : (pastedText ? [new File([pastedText], "pasted-text.txt", {type: "text/plain"})] : []);
+  if (!files.length) {
     notice("plagiarismNotice", "Choose a PDF, DOCX, or TXT file, or paste text first.", "error");
     return;
   }
-  if (!/\.(pdf|docx|txt)$/i.test(file.name || "")) {
+  if (files.some(file => !/\.(pdf|docx|txt)$/i.test(file.name || ""))) {
     notice("plagiarismNotice", "Plagiarism checking supports PDF, DOCX, and TXT files.", "error");
     return;
   }
@@ -194,37 +227,31 @@ plagiarismScanButton.addEventListener("click", async () => {
   plagiarismProgress.classList.remove("hidden");
   plagiarismProgress.setAttribute("aria-valuetext", "Uploading document and checking for matches");
   plagiarismReport.replaceChildren();
-  notice("plagiarismNotice", "Uploading document and checking for matches...");
+  notice("plagiarismNotice", `Checking ${files.length} document${files.length === 1 ? "" : "s"}...`);
   try {
-    const form = new FormData();
-    form.append("file", file);
-    const uploaded = await requestJSON(API.upload, {method: "POST", body: form});
-    if (!uploaded || !uploaded.id) throw new Error("The uploaded document could not be prepared for checking.");
-    if (uploaded.text_extracted === false) {
-      throw new Error(uploaded.processing_warning || "No readable text could be extracted from this file.");
+    let completed = 0;
+    for (const file of files) {
+      notice("plagiarismNotice", `Uploading and checking ${file.name} (${completed + 1}/${files.length})...`);
+      const form = new FormData(); form.append("file", file);
+      const uploaded = await requestJSON(API.upload, {method: "POST", body: form});
+      if (!uploaded || !uploaded.id) throw new Error(`${file.name}: upload could not be prepared.`);
+      if (uploaded.text_extracted === false) throw new Error(`${file.name}: ${uploaded.processing_warning || "No readable text could be extracted."}`);
+      const scan = await requestJSON(API.plagiarismScans, {method: "POST", body: JSON.stringify({file_id: uploaded.id, online_search: true, online_provider: "academic"})});
+      const report = await waitForPlagiarismResult(scan.scan_id);
+      const section = plagiarismElement("section", "plagiarism-document-result");
+      section.appendChild(plagiarismElement("h3", "plagiarism-section-title", file.name));
+      const priorTarget = plagiarismReport;
+      const previousSections = Array.from(priorTarget.childNodes);
+      const holder = document.createElement("div");
+      // Render into the report target, then move its nodes under this document heading.
+      renderPlagiarismResult(report);
+      while (priorTarget.firstChild) holder.appendChild(priorTarget.firstChild);
+      priorTarget.replaceChildren(...previousSections, section);
+      section.appendChild(holder);
+      completed += 1;
     }
     if (typeof loadFiles === "function") await loadFiles();
-    notice("plagiarismNotice", "Submitting the document to the online checker and retrieving its report...");
-    const scan = await requestJSON(API.plagiarismScans, {
-      method: "POST",
-      body: JSON.stringify({file_id: uploaded.id, online_search: true})
-    });
-    const report = await waitForPlagiarismResult(scan.scan_id);
-    renderPlagiarismResult(report);
-    const hasMatches = plagiarismVerifiedMatches(report).length > 0;
-    if (report.online_search_status === "completed" && hasMatches) {
-      notice("plagiarismNotice", "Verified matching website content found.", "success");
-    } else if (report.online_search_status === "completed") {
-      notice("plagiarismNotice", "Check complete.");
-    } else if (report.status === "completed_with_warnings" && hasMatches) {
-      if (report.online_search_status === "completed") {
-        notice("plagiarismNotice", "The online check completed. SmartFiles limited some local passage coverage.", "warning");
-      } else {
-        notice("plagiarismNotice", plagiarismOnlineFailure(report), "warning");
-      }
-    } else if (report.status !== "failed") {
-      notice("plagiarismNotice", plagiarismOnlineFailure(report), "error");
-    }
+    notice("plagiarismNotice", `Finished checking ${completed} document${completed === 1 ? "" : "s"}. Review accessible full-text evidence in each report.`, "success");
   } catch (error) {
     notice("plagiarismNotice", `Plagiarism check could not be completed: ${error.message}`, "error");
   } finally {

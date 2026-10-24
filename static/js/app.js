@@ -14,7 +14,7 @@ const API = {
   search: "/api/search",
   duplicates: "/api/duplicates",
   reprocess: "/api/reprocess",
-  chat: "/api/ask",
+  chat: "/api/chat",
   compare: "/api/compare",
   compress: "/api/compress",
   compressionHistory: "/api/compression/history",

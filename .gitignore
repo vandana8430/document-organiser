@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 .venv311/
+.venv-academic-check/
 venv/
 env/
 .env

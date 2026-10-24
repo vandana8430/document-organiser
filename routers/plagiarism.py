@@ -23,12 +23,15 @@ def start_scan(body: dict, background_tasks: BackgroundTasks, uid: int = Depends
     online_requested = body.get("online_search", False)
     if not isinstance(online_requested, bool):
         raise HTTPException(422, "Online source discovery must be explicitly enabled or disabled.")
-    scan = create_scan(uid, file_id, online_requested)
+    online_provider = body.get("online_provider", "quetext")
+    if not isinstance(online_provider, str) or online_provider not in ("quetext", "academic"):
+        raise HTTPException(422, "Choose a supported online source provider.")
+    scan = create_scan(uid, file_id, online_requested, online_provider)
     if scan["reused"]:
         return scan
     background_tasks.add_task(
         run_scan, scan["scan_id"], uid, file_id, online_requested,
-        scan.get("resume_report_id"),
+        scan.get("resume_report_id"), online_provider,
     )
     return scan
 

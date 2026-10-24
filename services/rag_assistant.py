@@ -1,4 +1,5 @@
 """Owner-scoped retrieval, grounded answers, and document comparison."""
+import json
 import logging
 import math, os, re
 from difflib import get_close_matches
@@ -133,10 +134,16 @@ def _clean_history(value):
     return cleaned
 
 
-def _try_generated_answer(question, history, hits, extraction_warnings, retrieval_mode):
-    """Use Gemini when a key is configured; otherwise keep the local extractive answer."""
-    key, _ = model_settings()
-    if not key or not hits:
+def _try_generated_answer(question, history, hits, extraction_warnings, retrieval_mode,
+                          extra_evidence=None, extra_sources=None, allow_general=False,
+                          model_errors=None):
+    """Use configured Ollama for an answer grounded in retrieved local evidence."""
+    model = model_settings()
+    if not model:
+        if model_errors is not None:
+            model_errors.append("Set OLLAMA_MODEL to an installed model and make sure Ollama is running.")
+        return None
+    if not hits and not extra_evidence and not allow_general:
         return None
     evidence = []
     for hit in hits[:5]:
@@ -146,24 +153,121 @@ def _try_generated_answer(question, history, hits, extraction_warnings, retrieva
             "reference": _section_reference(hit.get("text", "")),
             "text": hit.get("text", ""),
         })
+    evidence.extend(extra_evidence or [])
     try:
         answer = generate_answer(question, history=history, evidence=evidence)
     except ModelUnavailable as error:
-        logger.warning("Gemini unavailable; using extractive answer (%s)", error)
+        logger.warning("Ollama unavailable; using extractive answer (%s)", error)
+        if model_errors is not None:
+            model_errors.append(str(error))
         return None
     valid_refs = {hit.get("source_ref") for hit in hits if hit.get("source_ref")}
-    citations = [ref for ref in dict.fromkeys(re.findall(r"\[(S\d+)\]", answer)) if ref in valid_refs]
+    valid_refs.update(item.get("source_ref") for item in (extra_evidence or []) if item.get("source_ref"))
+    citations = [ref for ref in dict.fromkeys(re.findall(r"\[([SP]\d+)\]", answer)) if ref in valid_refs]
     if not citations:
-        citations = list(dict.fromkeys(hit.get("source_ref") for hit in hits if hit.get("source_ref")))
+        citations = list(dict.fromkeys(
+            [hit.get("source_ref") for hit in hits if hit.get("source_ref")]
+            + [item.get("source_ref") for item in (extra_evidence or []) if item.get("source_ref")]
+        ))
     return {
         "answer": answer,
-        "sources": _assistant_sources(hits),
+        "sources": _assistant_sources(hits) + list(extra_sources or []),
         "citations": citations,
         "answer_mode": "generated",
-        "ai_status": "gemini",
+        "ai_status": "ollama",
         "extraction_warnings": extraction_warnings,
         "retrieval_mode": retrieval_mode,
     }
+
+
+_PLAGIARISM_INTENT = re.compile(r"\b(plagiar(?:ism|ized|ised)|similarity|originality|match(?:es|ed)?|source report|check report|scan report)\b", re.I)
+_WORKSPACE_INTENT = re.compile(r"\b(my|our|uploaded|document|documents|file|files|paper|papers|research|plagiar|similarity|report|source)\b", re.I)
+_FOLLOW_UP = re.compile(r"\b(it|that|those|them|more|example|elaborate|continue|why|how about)\b", re.I)
+
+
+def _plagiarism_context(uid, question, document_ids=None, include_recent=False):
+    """Build compact context only from this owner's persisted reports and verified matches."""
+    if not document_ids and not include_recent:
+        return [], []
+    sql = ("SELECT s.id,s.fid,s.document_name,s.status,s.report_json FROM plagiarism_scans s "
+           "JOIN files f ON f.id=s.fid AND f.uid=s.uid WHERE s.uid=?")
+    args = [uid]
+    if document_ids:
+        ids = list(dict.fromkeys(int(item) for item in document_ids if int(item) > 0))[:20]
+        if not ids:
+            return [], []
+        sql += " AND s.fid IN (" + ",".join("?" for _ in ids) + ")"
+        args.extend(ids)
+    sql += " ORDER BY s.created DESC,s.id DESC LIMIT ?"
+    args.append(15 if include_recent else 8)
+    rows = q(sql, tuple(args))
+    contexts, sources = [], []
+    allowed_verification = {"accessible_full_text", "provider_match", "provider_text_match"}
+    for row in rows:
+        try:
+            report = json.loads(row["report_json"] or "{}")
+        except (ValueError, TypeError):
+            continue
+        ref = "P" + str(len(contexts) + 1)
+        lines = [f"Saved plagiarism scan #{row['id']} for {row['document_name']}; status: {row['status']}."]
+        online_status = report.get("online_search_status")
+        if online_status:
+            lines.append("Academic/online search status: " + str(online_status) + ".")
+        if report.get("academic_coverage_percent") is not None:
+            lines.append(f"Academic matched-passage coverage: {report['academic_coverage_percent']}%.")
+        for label, key in (("Exact local passage matches", "exact_match_count"),
+                           ("Approximate local passage matches", "approximate_match_count")):
+            value = report.get(key)
+            if value is not None:
+                lines.append(f"{label}: {value}.")
+        verified_count = 0
+        verified_url = ""
+        seen = set()
+        for passage_match in report.get("online_matches", []) if isinstance(report.get("online_matches"), list) else []:
+            if not isinstance(passage_match, dict):
+                continue
+            passage = passage_match.get("passage", "")
+            for source in passage_match.get("sources", []) if isinstance(passage_match.get("sources"), list) else []:
+                if not isinstance(source, dict) or source.get("verification") not in allowed_verification:
+                    continue
+                excerpt = source.get("evidence") or source.get("source_text")
+                if not isinstance(excerpt, str) or not excerpt.strip():
+                    continue
+                marker = (str(source.get("doi") or source.get("url") or source.get("source_url")), str(passage))
+                if marker in seen:
+                    continue
+                seen.add(marker)
+                verified_count += 1
+                title = str(source.get("title") or source.get("source_title") or "Source")[:180]
+                authors = source.get("authors") if isinstance(source.get("authors"), list) else []
+                similarity = source.get("similarity_percent")
+                paper_url = str(source.get("doi") and ("https://doi.org/" + str(source["doi"]))
+                                or source.get("url") or source.get("source_url") or "")
+                if not verified_url and paper_url.startswith(("https://", "http://")):
+                    verified_url = paper_url
+                lines.append(f"Verified match: document passage: {str(passage)[:500]}; source paper: {title}; "
+                             f"authors: {', '.join(str(a) for a in authors[:8])}; "
+                             f"reported passage similarity: {similarity}% when available; "
+                             f"source URL: {paper_url}; matched source excerpt: {excerpt[:700]}")
+        for group in report.get("local_matches", []) if isinstance(report.get("local_matches"), list) else []:
+            if not isinstance(group, dict):
+                continue
+            for match in group.get("matches", [])[:3] if isinstance(group.get("matches"), list) else []:
+                if not isinstance(match, dict):
+                    continue
+                title = str(match.get("source_title") or group.get("document_name") or "Owned document")[:180]
+                lines.append(f"Local document overlap: passage: {str(match.get('passage', ''))[:500]}; "
+                             f"other owned file: {title}; source excerpt: {str(match.get('evidence', ''))[:700]}; "
+                             f"similarity: {match.get('similarity_percent', match.get('similarity', 'not reported'))}.")
+        if verified_count == 0 and not report.get("local_matches"):
+            lines.append("This saved report contains no verified source passage excerpts to cite.")
+        contexts.append({"source_ref": ref, "name": "Plagiarism report: " + row["document_name"],
+                         "reference": "Scan #" + str(row["id"]), "text": "\n".join(lines)[:1800]})
+        sources.append({"ref": ref, "id": row["fid"], "name": "Plagiarism report: " + row["document_name"],
+                        "kind": "plagiarism_report", "category": "Plagiarism report",
+                        "is_demo": bool(report.get("sample_data")), "reference": "Scan #" + str(row["id"]),
+                        "snippet": "\n".join(lines)[:700], "url": verified_url or None})
+    return contexts, sources
 
 
 def _clean_history(value):
@@ -463,9 +567,37 @@ def answer_question(b: dict, uid: int):
             file_id = summary_file_ids[0]
             summary_file_ids = None
 
+    retrieval_question = question
+    if _FOLLOW_UP.search(question) and history:
+        previous_question = next((turn["text"] for turn in reversed(history) if turn["role"] == "user"), "")
+        if previous_question:
+            retrieval_question = previous_question + "\n" + question
     hits, retrieval_mode, extraction_warnings = retrieve_evidence(
-        uid, question, file_id, file_ids=summary_file_ids or context_file_ids or None)
+        uid, retrieval_question, file_id, file_ids=summary_file_ids or context_file_ids or None)
+    related_document_ids = list(dict.fromkeys(
+        ([file_id] if file_id else []) + [hit["fid"] for hit in hits]
+    ))
+    plagiarism_evidence, plagiarism_sources = _plagiarism_context(
+        uid, question, related_document_ids or None,
+        include_recent=not related_document_ids and bool(_PLAGIARISM_INTENT.search(question)),
+    )
+    model_errors = []
     if not hits:
+        if plagiarism_evidence:
+            generated = _try_generated_answer(
+                question, history, [], extraction_warnings, retrieval_mode,
+                extra_evidence=plagiarism_evidence, extra_sources=plagiarism_sources,
+                model_errors=model_errors,
+            )
+            if generated:
+                return generated
+            return {"answer": "Saved plagiarism report evidence:\n" + "\n\n".join(
+                        item["text"] + " [" + item["source_ref"] + "]" for item in plagiarism_evidence),
+                    "sources": plagiarism_sources,
+                    "citations": [item["source_ref"] for item in plagiarism_evidence],
+                    "answer_mode": "extractive", "ai_status": "local_extractive",
+                    "ai_error": model_errors[0] if model_errors else None,
+                    "extraction_warnings": extraction_warnings, "retrieval_mode": "plagiarism_report"}
         if extraction_warnings:
             names = "; ".join(f"{item['name']}: {item['message']}" for item in extraction_warnings)
             answer = "I could not search some of your documents because text extraction failed. " + names
@@ -479,8 +611,15 @@ def answer_question(b: dict, uid: int):
         else:
             answer = INSUFFICIENT
             mode = "insufficient"
+        if not extraction_warnings and not _WORKSPACE_INTENT.search(question):
+            generated = _try_generated_answer(
+                question, history, [], extraction_warnings, retrieval_mode, allow_general=True,
+                model_errors=model_errors)
+            if generated:
+                return generated
         return {"answer": answer, "sources": [], "citations": [],
                 "answer_mode": mode, "ai_status": "not_needed",
+                "ai_error": model_errors[0] if model_errors else None,
                 "extraction_warnings": extraction_warnings,
                 "retrieval_mode": retrieval_mode}
 
@@ -505,12 +644,15 @@ def answer_question(b: dict, uid: int):
             sections.append(f"{row['name']}: {summary} [{source['ref']}]")
             citations.append(source["ref"])
         if sections:
-            generated = _try_generated_answer(question, history, hits, extraction_warnings, retrieval_mode)
+            generated = _try_generated_answer(question, history, hits, extraction_warnings, retrieval_mode,
+                                              plagiarism_evidence, plagiarism_sources,
+                                              model_errors=model_errors)
             if generated:
                 return generated
             return {"answer": "Extractive summaries from matching documents:\n" + "\n\n".join(sections),
                     "sources": refs, "citations": citations, "answer_mode": "extractive",
                     "ai_status": "local_extractive", "extraction_warnings": extraction_warnings,
+                    "ai_error": model_errors[0] if model_errors else None,
                     "retrieval_mode": retrieval_mode}
 
     if _is_comparison_question(question):
@@ -588,11 +730,18 @@ def answer_question(b: dict, uid: int):
         if len(selected) == 3:
             break
     if not selected:
+        generated = _try_generated_answer(question, history, hits, extraction_warnings, retrieval_mode,
+                                          plagiarism_evidence, plagiarism_sources,
+                                          model_errors=model_errors)
+        if generated:
+            return generated
         return {"answer": INSUFFICIENT, "sources": _assistant_sources(hits), "citations": [],
                 "answer_mode": "insufficient", "ai_status": "local_extractive",
-                "extraction_warnings": extraction_warnings,
-                "retrieval_mode": retrieval_mode}
-    generated = _try_generated_answer(question, history, hits, extraction_warnings, retrieval_mode)
+                "ai_error": model_errors[0] if model_errors else None,
+                "extraction_warnings": extraction_warnings, "retrieval_mode": retrieval_mode}
+    generated = _try_generated_answer(question, history, hits, extraction_warnings, retrieval_mode,
+                                      plagiarism_evidence, plagiarism_sources,
+                                      model_errors=model_errors)
     if generated:
         return generated
     citations = list(dict.fromkeys(item[3] for item in selected))
@@ -605,6 +754,7 @@ def answer_question(b: dict, uid: int):
             answer = "Extractive summary from the selected document:\n" + answer
     return {"answer": answer, "sources": _assistant_sources(hits), "citations": citations,
             "answer_mode": "extractive", "ai_status": "local_extractive",
+            "ai_error": model_errors[0] if model_errors else None,
             "extraction_warnings": extraction_warnings,
             "retrieval_mode": retrieval_mode}
 

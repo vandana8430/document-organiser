@@ -42,12 +42,17 @@ if errorlevel 1 (
   )
 )
 where tesseract >nul 2>&1
-if errorlevel 1 echo Optional OCR is unavailable: install the Tesseract executable to extract text from images.
+if errorlevel 1 if not exist "%ProgramFiles%\Tesseract-OCR\tesseract.exe" echo Optional OCR is unavailable: install the Tesseract executable to extract text from images and scanned PDF pages.
 netstat -ano | findstr /C:":8000" >nul
 if errorlevel 1 (
-  start "SmartFiles Server" cmd /k ""%SMARTFILES_PYTHON%" -m uvicorn app:app --reload --port 8000"
-  timeout /t 3 /nobreak >nul
+  echo.
+  echo SmartFiles will open at: http://127.0.0.1:8000/
+  echo API docs: http://127.0.0.1:8000/docs
+  echo Keep this terminal open. Press Ctrl+C to stop the server.
+  start "" "http://127.0.0.1:8000/"
+  "%SMARTFILES_PYTHON%" -m uvicorn app:app --reload --host 127.0.0.1 --port 8000
 ) else (
-  echo SmartFiles is already listening on port 8000.
+  echo SmartFiles is already running. Open: http://127.0.0.1:8000/
+  echo API docs: http://127.0.0.1:8000/docs
+  start "" "http://127.0.0.1:8000/"
 )
-start http://127.0.0.1:8000

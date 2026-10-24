@@ -14,6 +14,7 @@ from fastapi import HTTPException
 
 from database.repository import q, stored_file_path, transaction
 from services.document_processor import extract
+from services.academic_sources import compare as _academic_comparison
 
 QUETEXT_API_BASE = "https://www.quetext.com/api/v2"
 QUETEXT_MIN_WORDS = 20
@@ -198,15 +199,98 @@ def _safe_url(value):
         return ""
 
 
-def _base_report(document_name, online_requested, is_demo=False):
+def _tavily_fallback(passages, report):
+    """Search with Tavily when the paid checker is unavailable; only retain verified page text."""
+    api_key = os.getenv("TAVILY_API_KEY", "").strip()
+    if not api_key:
+        return False
+    queries = _distinctive_passages(passages)
+    report["online_search_provider"] = "tavily"
+    report["online_search_mode"] = "verified_web_search_v1"
+    report["online_search_status"] = "searching"
+    sources, online_matches = {}, []
+    exact_indexes, approximate_indexes = set(), set()
+    try:
+        with httpx.Client(timeout=httpx.Timeout(20.0, connect=8.0)) as client:
+            for passage in queries:
+                report["searches_attempted"] += 1
+                response = client.post(
+                    "https://api.tavily.com/search",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    json={"query": '"' + passage["text"] + '"',
+                          "search_depth": "basic", "max_results": 5,
+                          "include_raw_content": True},
+                )
+                response.raise_for_status()
+                payload = response.json()
+                results = payload.get("results", []) if isinstance(payload, dict) else []
+                report["searches_completed"] += 1
+                for item in results if isinstance(results, list) else []:
+                    if not isinstance(item, dict):
+                        continue
+                    url = _safe_url(item.get("url"))
+                    raw = item.get("raw_content") or ""
+                    if not url or not isinstance(raw, str) or not raw.strip():
+                        continue
+                    # A search hit alone is not evidence. Require substantial lexical overlap
+                    # between the document passage and provider-returned page text.
+                    sentences = _sentences(raw)
+                    best = max(sentences, key=lambda sentence: _jaccard(passage["text"], sentence), default="")
+                    similarity = 1.0 if _exact_span(passage["text"], raw) else _jaccard(passage["text"], best)
+                    if similarity < 0.78:
+                        continue
+                    title = re.sub(r"\s+", " ", str(item.get("title") or urlsplit(url).hostname)).strip()[:300]
+                    source = sources.setdefault(url, {
+                        "title": title, "url": url, "domain": urlsplit(url).hostname or "",
+                        "provider": "tavily", "verification": "provider_text_match",
+                        "evidence_limit": "Match verified against text returned by Tavily; review the linked page.",
+                        "evidence": best[:1000], "matches": [],
+                    })
+                    match = {"passage": passage["text"], "matched_text": passage["text"],
+                             "match_type": "exact" if similarity == 1.0 else "approximate",
+                             "source_type": "online", "source_title": title, "source_url": url,
+                             "evidence": best[:1000], "source_text": best[:1000],
+                             "similarity": round(similarity, 3),
+                             "similarity_percent": round(similarity * 100, 1),
+                             "passage_index": passage["index"], "start_offset": passage.get("start_offset"),
+                             "end_offset": passage.get("end_offset")}
+                    source["matches"].append(match)
+                    online_matches.append({"passage": passage["text"], "matched_text": passage["text"],
+                                           "match_type": match["match_type"],
+                                           "sources": [{**match, "provider": "tavily",
+                                                        "verification": "provider_text_match", "title": title,
+                                                        "url": url}]})
+                    (exact_indexes if similarity == 1.0 else approximate_indexes).add(passage["index"])
+    except (httpx.HTTPError, ValueError, TypeError) as error:
+        report["online_search_status"] = "provider_error"
+        report["errors"].append(f"Tavily fallback failed ({type(error).__name__}). No unverified matches were reported.")
+        return True
+    report["sources"] = list(sources.values())
+    report["online_matches"] = online_matches
+    report["online_pages_analyzed"] = len(sources)
+    report["online_search_status"] = "completed" if queries else "no_suitable_passages"
+    report["online_exact_match_count"] = len(exact_indexes)
+    report["online_approximate_match_count"] = len(approximate_indexes - exact_indexes)
+    total_words = sum(item["words"] for item in passages)
+    exact_words = sum(item["words"] for item in passages if item["index"] in exact_indexes)
+    approximate_words = sum(item["words"] for item in passages if item["index"] in approximate_indexes - exact_indexes)
+    report["online_exact_similarity_percent"] = round(100 * exact_words / total_words, 1) if total_words else None
+    report["online_approximate_similarity_percent"] = round(100 * approximate_words / total_words, 1) if total_words else None
+    report["quetext_score_percent"] = None
+    return True
+
+
+def _base_report(document_name, online_requested, is_demo=False, online_provider="quetext"):
+    provider_name = "crossref+openalex+semantic_scholar" if online_provider == "academic" else "quetext"
+    provider_mode = "academic_fulltext_v1" if online_provider == "academic" else "quetext_report_v1"
     return {
         "document_name": document_name,
         "sample_data": bool(is_demo),
         "scan_date": _timestamp(),
         "status": "queued",
         "online_search_requested": bool(online_requested),
-        "online_search_provider": "quetext" if online_requested else None,
-        "online_search_mode": "quetext_report_v1" if online_requested else None,
+        "online_search_provider": provider_name if online_requested else None,
+        "online_search_mode": provider_mode if online_requested else None,
         "online_search_status": "pending" if online_requested else "not_requested",
         "quetext_score_percent": None,
         "quetext_progress_percent": None,
@@ -246,7 +330,9 @@ def _base_report(document_name, online_requested, is_demo=False):
             "all other owned documents with extracted text, but is limited to the first 1,000 source "
             "sentences per document; reports disclose when a document was truncated. Online search, "
             "when explicitly enabled, searches only the configured distinctive subset and reports the "
-            "actual coverage and reasons for skipped passages."
+            "actual coverage and reasons for skipped passages. Academic online discovery queries Crossref, "
+            "OpenAlex, and Semantic Scholar. Academic matches require accessible source body text; titles "
+            "and abstracts alone are never treated as evidence."
         ),
         "disclaimer": "Text similarity does not by itself prove plagiarism. Review the matching passages and sources manually.",
     }
@@ -268,7 +354,7 @@ def _empty_report(scan_id, uid, name, online_requested, error, is_demo=False):
     _store(scan_id, uid, "completed_with_warnings", report)
 
 
-def create_scan(uid, file_id, online_requested):
+def create_scan(uid, file_id, online_requested, online_provider="quetext"):
     """Validate ownership/format and persist a queued report without touching files."""
     if isinstance(file_id, bool) or not isinstance(file_id, int) or file_id <= 0:
         raise HTTPException(422, "Choose a valid document to scan.")
@@ -297,8 +383,8 @@ def create_scan(uid, file_id, online_requested):
                 for active in recent:
                     active_report = json.loads(active["report_json"])
                     if (
-                        active_report.get("online_search_provider") == "quetext"
-                        and active_report.get("online_search_mode") == "quetext_report_v1"
+                        active_report.get("online_search_provider") == ("crossref+openalex+semantic_scholar" if online_provider == "academic" else "quetext")
+                        and active_report.get("online_search_mode") == ("academic_fulltext_v1" if online_provider == "academic" else "quetext_report_v1")
                         and active["status"] in {"queued", "scanning", "searching"}
                     ):
                         return {"scan_id": active["id"], "status": active["status"], "reused": True}
@@ -307,16 +393,16 @@ def create_scan(uid, file_id, online_requested):
                 for cached in recent:
                     cached_report = json.loads(cached["report_json"])
                     if (
-                        cached_report.get("online_search_provider") == "quetext"
-                        and cached_report.get("online_search_mode") == "quetext_report_v1"
+                        cached_report.get("online_search_provider") == ("crossref+openalex+semantic_scholar" if online_provider == "academic" else "quetext")
+                        and cached_report.get("online_search_mode") == ("academic_fulltext_v1" if online_provider == "academic" else "quetext_report_v1")
                         and cached_report.get("online_search_status") == "completed"
                         and cached["status"] in {"completed", "completed_with_warnings"}
                     ):
                         return {"scan_id": cached["id"], "status": cached["status"], "reused": True}
                 recent_report = json.loads(recent[0]["report_json"])
                 is_quetext_report = (
-                    recent_report.get("online_search_provider") == "quetext"
-                    and recent_report.get("online_search_mode") == "quetext_report_v1"
+                    recent_report.get("online_search_provider") == ("crossref+openalex+semantic_scholar" if online_provider == "academic" else "quetext")
+                    and recent_report.get("online_search_mode") == ("academic_fulltext_v1" if online_provider == "academic" else "quetext_report_v1")
                 )
                 if is_quetext_report and recent[0]["status"] in {"queued", "scanning", "searching"}:
                     return {"scan_id": recent[0]["id"], "status": recent[0]["status"], "reused": True}
@@ -342,7 +428,7 @@ def create_scan(uid, file_id, online_requested):
                         "resume_report_id": str(resume_report_id),
                     }
 
-        report = _base_report(name, online_requested, bool(rows[0]["demo_key"]))
+        report = _base_report(name, online_requested, bool(rows[0]["demo_key"]), online_provider)
         cursor = connection.execute(
             "INSERT INTO plagiarism_scans(uid,fid,document_name,online_requested,status,created,updated,report_json) "
             "VALUES(?,?,?,?,?,?,?,?)",
@@ -586,6 +672,8 @@ def _online_comparison(
     report["online_search_status"] = "searching"
     api_key = _quetext_api_key()
     if not api_key:
+        if _tavily_fallback(passages, report):
+            return exact_by_passage, approx_by_passage
         report["online_search_status"] = "unavailable_missing_api_key"
         report["errors"].append("Quetext online checking is not configured. Add QUETEXT_API_KEY to services/key.env or the backend environment, then restart SmartFiles.")
         return exact_by_passage, approx_by_passage
@@ -610,6 +698,9 @@ def _online_comparison(
         try:
             response = _quetext_request("POST", "report", api_key, {"title": report["document_name"], "text": document_text})
         except (httpx.TimeoutException, httpx.RequestError) as error:
+            if _tavily_fallback(passages, report):
+                report["errors"].append("Quetext could not be reached; the configured Tavily fallback was used.")
+                return exact_by_passage, approx_by_passage
             report["online_search_status"] = "provider_error"
             report["quetext_submission_uncertain"] = True
             report["errors"].append(
@@ -619,6 +710,12 @@ def _online_comparison(
             return exact_by_passage, approx_by_passage
         if _quetext_has_error(response):
             report["online_search_status"], message = _quetext_error(response)
+            quetext_status = report["online_search_status"]
+            if quetext_status in {
+                "quota_exhausted", "invalid_api_key", "rate_limited", "provider_error", "access_denied"
+            } and _tavily_fallback(passages, report):
+                report["errors"].append(f"Quetext was unavailable ({quetext_status}); the configured Tavily fallback was used.")
+                return exact_by_passage, approx_by_passage
             report["errors"].append(message + " Local comparison was still completed.")
             return exact_by_passage, approx_by_passage
         try:
@@ -823,7 +920,7 @@ def _online_comparison(
     return exact_by_passage, approx_by_passage
 
 
-def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None):
+def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None, online_provider="quetext"):
     """Run local analysis and optional bounded web searches as a background task."""
     rows = q(
         "SELECT id,name,path,kind,text,demo_key FROM files WHERE id=? AND uid=?",
@@ -834,7 +931,7 @@ def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None):
         return
     file = rows[0]
     is_demo = bool(file["demo_key"])
-    report = _base_report(file["name"], online_requested, is_demo)
+    report = _base_report(file["name"], online_requested, is_demo, online_provider)
     report["scan_id"] = scan_id
     _store(scan_id, uid, "scanning", report)
     try:
@@ -845,11 +942,20 @@ def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None):
             if not path.is_file():
                 _empty_report(scan_id, uid, file["name"], online_requested, "The stored original file is missing.", is_demo)
                 return
-            text, _ = extract(str(path), file["kind"], extension)
+            try:
+                text, _ = extract(str(path), file["kind"], extension)
+            except Exception as error:
+                message = (
+                    "OCR is not configured: install the Tesseract executable and restart SmartFiles."
+                    if type(error).__name__ == "TesseractNotFoundError"
+                    else f"Text extraction failed ({type(error).__name__}); the original upload is still available."
+                )
+                _empty_report(scan_id, uid, file["name"], online_requested, message, is_demo)
+                return
             text = (text or "").strip()
         if not text:
             if os.path.splitext(file["name"])[1].lower() == ".pdf":
-                error = "No selectable text could be extracted from this PDF. It may be scanned; OCR is not configured for PDFs."
+                error = "No readable text was extracted from this PDF. It may be blank or scanned; scanned pages require legible text and Tesseract OCR."
             else:
                 error = "No readable text was extracted from this document."
             _empty_report(scan_id, uid, file["name"], online_requested, error, is_demo)
@@ -875,14 +981,16 @@ def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None):
         else:
             local_exact, local_approx = _local_comparison(uid, file_id, passages, report)
         _store(scan_id, uid, "searching" if online_requested else "scanning", report)
-        online_exact, online_approx = (
-            _online_comparison(
+        if online_requested and online_provider == "academic":
+            online_exact, online_approx = _academic_comparison(passages, report)
+        elif online_requested:
+            online_exact, online_approx = _online_comparison(
                 passages, report, text,
                 progress_callback=lambda: _store(scan_id, uid, "searching", report),
                 existing_report_id=resume_report_id,
             )
-            if online_requested else (defaultdict(list), defaultdict(list))
-        )
+        else:
+            online_exact, online_approx = defaultdict(list), defaultdict(list)
 
         exact_passages = set()
         approximate_passages = set()
@@ -954,8 +1062,7 @@ def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None):
             }
             for index in sorted(online_exact_passages | online_approximate_passages)
         ]
-        # Quetext can return matches outside SmartFiles' bounded passage sample.
-        # Preserve the provider's actual results for display in that case.
+        # Preserve provider matches already grouped by academic source.
         if not report.get("online_matches"):
             report["online_matches"] = mapped_online_matches
         report["possible_matching_sources"] = len(report["sources"]) + len(report["local_matches"])

@@ -7,16 +7,18 @@ async function refreshAssistantStatus() {
   try {
     const status = await requestJSON(API.assistantStatus);
     note.textContent = status.configured
-      ? `Gemini (${status.model}) is configured. Answers stay grounded in retrieved passages from your documents.`
+      ? `Ollama (${status.model}) is ready. Document and report answers stay grounded in retrieved evidence.`
       : (status.message || "No language model is configured; local document search and extractive answers remain available.");
   } catch (_) {
-    note.textContent = "SmartFiles searches your own documents first. Conversational answers require a configured Gemini key.";
+    note.textContent = "SmartFiles searches your own documents first. Start Ollama and configure OLLAMA_MODEL to enable AI responses.";
   }
 }
+function assistantReply(answer, sources, citations) {
   const reply = document.createElement("div");
   reply.className = "message";
   const answerText = document.createElement("div");
   answerText.textContent = "SmartFiles: " + answer;
+  answerText.style.whiteSpace = "pre-wrap";
   reply.appendChild(answerText);
   const cited = new Set(Array.isArray(citations) ? citations : []);
   const visibleSources = cited.size ? sources.filter(source => cited.has(source.ref)) : sources;
@@ -35,6 +37,17 @@ async function refreshAssistantStatus() {
       const snippet = document.createElement("p");
       snippet.textContent = source.snippet || "Retrieved passage from this document.";
       item.append(link, metadata, snippet); list.appendChild(item);
+      if (typeof source.url === "string") {
+        try {
+          const url = new URL(source.url);
+          if (["http:", "https:"].includes(url.protocol)) {
+            const external = document.createElement("a");
+            external.href = url.href; external.target = "_blank"; external.rel = "noopener noreferrer";
+            external.textContent = "Open verified paper source";
+            item.appendChild(external);
+          }
+        } catch (_) { /* Ignore invalid stored source URLs. */ }
+      }
     });
     reply.appendChild(list);
   }
@@ -51,7 +64,7 @@ $("chatForm").addEventListener("submit", async event => {
   }
   const messages = $("chatMessages");
   const userMessage = document.createElement("div");
-  userMessage.className = "message";
+  userMessage.className = "message message-user";
   userMessage.textContent = "You: " + question;
   messages.appendChild(userMessage);
   const pending = document.createElement("div");
@@ -82,7 +95,9 @@ $("chatForm").addEventListener("submit", async event => {
     } else if (data.answer_mode === "document_not_found") {
       notice("chatNotice", "No matching filename or document metadata was found in your workspace.");
     } else if (data.answer_mode === "generated") {
-      notice("chatNotice", "Gemini answered from retrieved passages in your documents.", "success");
+      notice("chatNotice", data.ai_status === "ollama"
+        ? "Ollama answered using the retrieved evidence."
+        : "SmartFiles answered using the retrieved evidence.", "success");
     } else if (data.answer_mode === "extractive") {
       notice("chatNotice", "Showing exact passages selected from your documents; no generated claims were added.", "success");
     } else if (data.answer_mode === "comparison") {
@@ -93,6 +108,9 @@ $("chatForm").addEventListener("submit", async event => {
       notice("chatNotice", "The retrieved documents did not contain enough supporting information.");
     } else {
       notice("chatNotice", "The available documents do not provide enough matching evidence to answer.");
+    }
+    if (data.ai_error) {
+      notice("chatNotice", `${$("chatNotice").textContent} Local AI is unavailable: ${data.ai_error}`, "warning");
     }
     if (Array.isArray(data.extraction_warnings) && data.extraction_warnings.length && data.answer_mode !== "extraction_unavailable") {
       const skipped = data.extraction_warnings.map(item => `${item.name}: ${item.message}`).join("; ");

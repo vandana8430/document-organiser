@@ -383,28 +383,41 @@ def test_frontend_chat_contract_and_local_fallback():
     assert body["sources"][0]["name"] == "answer_source.txt"
 
 
-def test_assistant_uses_gemini_when_configured_and_falls_back_when_unavailable(monkeypatch):
+def test_assistant_uses_mocked_ollama_when_configured_and_falls_back_when_unavailable(monkeypatch):
+    import httpx
     from services import llm_service
-    from services import rag_assistant
 
-    assert client.post("/api/register", json={"email": "gemini-assistant@example.test", "password": "gemini-test-123"}).status_code == 200
+    assert client.post("/api/register", json={"email": "ollama-assistant@example.test", "password": "ollama-test-123"}).status_code == 200
     uploaded = client.post("/api/upload", files={"file": ("comet.txt", b"The blue comet passed Earth on 14 May 2024.", "text/plain")})
     assert uploaded.status_code == 200
 
-    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
-    monkeypatch.setattr(rag_assistant, "generate_answer", lambda question, history=None, evidence=None: "The comet date is 14 May 2024 [S1].")
-    generated = client.post("/api/ask", json={"question": "When did the blue comet pass Earth?", "history": [{"role": "user", "text": "hello"}]})
+    monkeypatch.setenv("OLLAMA_MODEL", "installed-local-test:latest")
+    calls = []
+
+    def fake_post(url, json, timeout):
+        calls.append((url, json, timeout))
+        return httpx.Response(200, json={"model": "installed-local-test:latest",
+                                         "message": {"role": "assistant", "content": "The comet date is 14 May 2024 [S1]."},
+                                         "done": True})
+
+    monkeypatch.setattr(llm_service.httpx, "post", fake_post)
+    generated = client.post("/api/chat", json={"question": "When did the blue comet pass Earth?", "history": [{"role": "user", "text": "hello"}]})
     assert generated.status_code == 200, generated.text
     body = generated.json()
     assert body["answer_mode"] == "generated"
-    assert body["ai_status"] == "gemini"
+    assert body["ai_status"] == "ollama"
     assert "14 May 2024" in body["answer"]
     assert "S1" in body["citations"]
+    assert calls[0][0] == "http://localhost:11434/api/chat"
+    assert calls[0][1]["model"] == "installed-local-test:latest"
+    assert calls[0][1]["messages"][1]["content"] == "hello"
+    assert any("The blue comet passed Earth on 14 May 2024." in message["content"]
+               for message in calls[0][1]["messages"] if message["role"] == "user")
 
     def unavailable(*_args, **_kwargs):
-        raise llm_service.ModelUnavailable("The language model timed out.")
+        raise httpx.ReadTimeout("mock slow Ollama")
 
-    monkeypatch.setattr(rag_assistant, "generate_answer", unavailable)
+    monkeypatch.setattr(llm_service.httpx, "post", unavailable)
     fallback = client.post("/api/ask", json={"question": "When did the blue comet pass Earth?"})
     assert fallback.status_code == 200, fallback.text
     fallback_body = fallback.json()
@@ -412,9 +425,19 @@ def test_assistant_uses_gemini_when_configured_and_falls_back_when_unavailable(m
     assert fallback_body["ai_status"] == "local_extractive"
     assert "14 May 2024" in fallback_body["answer"]
 
+    monkeypatch.setattr(llm_service.httpx, "get", lambda *_args, **_kwargs: httpx.Response(
+        200, json={"models": [{"name": "installed-local-test:latest"}]}))
     status = client.get("/api/assistant/status")
     assert status.status_code == 200
     assert status.json()["configured"] is True
+    assert status.json()["provider"] == "Ollama"
+
+
+def test_assistant_rejects_empty_message():
+    assert client.post("/api/register", json={"email": "empty-chat@example.test", "password": "empty-chat-123"}).status_code == 200
+    response = client.post("/api/chat", json={"question": "   "})
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Please enter a question"
 
 
 def test_extractor_reads_real_sample_pdf_docx_txt_csv_xlsx_and_pptx():
@@ -940,7 +963,7 @@ def test_dashboard_and_compression_views_are_connected_to_frontend_assets():
     assert 'data-view="compressor"' in home.text
     assert 'data-view="optimizer"' in home.text
     assert 'data-view="plagiarism"' in home.text
-    assert '<input id="plagiarismFile" type="file" accept=".pdf,.docx,.txt">' in home.text
+    assert '<input id="plagiarismFile" type="file" accept=".pdf,.docx,.txt" multiple>' in home.text
     assert '<details class="plagiarism-paste-option">' in home.text
     assert 'id="plagiarismText"' in home.text
     assert 'id="plagiarismScanButton"' in home.text
@@ -958,13 +981,13 @@ def test_dashboard_and_compression_views_are_connected_to_frontend_assets():
         assert "API." in response.text
     plagiarism_script = client.get("/static/js/plagiarism.js").text
     assert 'online_search: true' in plagiarism_script
-    assert 'source.verification === "provider_match"' in plagiarism_script
+    assert '"provider_match", "provider_text_match"' in plagiarism_script
     assert 'source.evidence' in plagiarism_script
     assert 'match.title' in plagiarism_script
-    assert 'link.href = match.url' in plagiarism_script
-    assert "No matching content was found by Quetext." in plagiarism_script
-    assert "Quetext could not complete the online check." in plagiarism_script
-    assert "Free local comparison completed against your saved SmartFiles documents." in plagiarism_script
+    assert 'link.href = source.url' in plagiarism_script
+    assert "No matching website content was found." in plagiarism_script
+    assert "The online check could not be completed." in plagiarism_script
+    assert "Verified passage coverage in searched web results" in plagiarism_script
     stylesheet = client.get("/static/css/style.css").text
     assert ".plagiarism-match-card" in stylesheet
     assert '<script src="https://cdn.' not in home.text
@@ -1385,7 +1408,7 @@ def test_plagiarism_supports_pdf_docx_txt_and_reports_scanned_pdf():
     started = client.post("/api/plagiarism/scans", json={"file_id": uploaded.json()["id"]})
     report = client.get(f"/api/plagiarism/reports/{started.json()['scan_id']}").json()
     assert report["errors"]
-    assert "OCR is not configured" in report["errors"][0]
+    assert "No readable text was extracted" in report["errors"][0]
     assert uploaded.json()["text_extracted"] is False
 
 
@@ -1499,7 +1522,7 @@ def test_plagiarism_quetext_retry_resumes_saved_report_id(monkeypatch):
             return _fake_quetext_response(200, {"id": "resumable-report"})
         if "progress" in path:
             calls["progress"] += 1
-            if calls["progress"] == 1:
+            if calls["progress"] <= plagiarism.QUETEXT_MAX_GET_RETRIES + 1:
                 return _fake_quetext_response(429, message="Rate limit exceeded")
             return _fake_quetext_response(200, [{"Progress": 1.0}])
         return _fake_quetext_response(200, {"status": "completed", "score": 8.0, "matches": [{
@@ -1524,10 +1547,10 @@ def test_plagiarism_quetext_frontend_polls_without_fixed_timeout_and_shows_score
     assert "while (true)" in script
     assert "attempt < 125" not in script
     assert "quetext_progress_percent" in script
-    assert "Overall Quetext plagiarism score" in script
-    assert "Quetext did not provide a separate source excerpt" in script
+    assert "Overall similarity score" in script
+    assert "No separate source excerpt was provided for this match" in script
     assert "Topic passage from your document" in script
-    assert 'source.verification !== "provider_match"' in script
+    assert '"provider_match", "provider_text_match"' in script
     assert 'sources.set(match.url' in script
 
 
@@ -1544,7 +1567,7 @@ def test_plagiarism_quetext_credits_and_missing_key_are_clear(monkeypatch):
     missing_report = client.get(f"/api/plagiarism/reports/{missing.json()['scan_id']}").json()
     assert missing_report["online_search_status"] == "unavailable_missing_api_key"
     assert any("QUETEXT_API_KEY" in item for item in missing_report["errors"])
-    assert missing_report["exact_match_count"] == 0
+    assert missing_report["exact_match_count"] is None
     assert missing_report["local_matches"] == []
 
     monkeypatch.setenv("QUETEXT_API_KEY", "configured-test-key")
@@ -1553,7 +1576,7 @@ def test_plagiarism_quetext_credits_and_missing_key_are_clear(monkeypatch):
     exhausted_report = client.get(f"/api/plagiarism/reports/{exhausted.json()['scan_id']}").json()
     assert exhausted_report["online_search_status"] == "quota_exhausted"
     assert any("credits" in item.casefold() for item in exhausted_report["errors"])
-    assert exhausted_report["exact_match_count"] == 0
+    assert exhausted_report["exact_match_count"] is None
     assert exhausted_report["local_matches"] == []
     assert "local_fallback" not in exhausted_report
     assert exhausted_report["online_matches"] == []
@@ -1608,6 +1631,47 @@ def test_plagiarism_quetext_processes_supported_text_documents(monkeypatch, file
     assert report["online_search_status"] == "completed"
     assert report["online_matches"][0]["sources"][0]["matched_text"] == passage
     assert report["online_matches"][0]["sources"][0]["url"] == "https://example.org/source"
+
+
+def test_tavily_fallback_reports_only_matches_verified_against_returned_text(monkeypatch):
+    from services import plagiarism
+
+    passage = "Distinctive words describe a river basin restoration plan with native plants and careful soil monitoring."
+    class Response:
+        def raise_for_status(self): pass
+        def json(self):
+            return {"results": [{"title": "River Restoration Guide", "url": "https://example.org/guide",
+                                 "raw_content": passage}]}
+    class Client:
+        def __init__(self, **_kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *_args): pass
+        def post(self, *_args, **_kwargs): return Response()
+
+    monkeypatch.setenv("TAVILY_API_KEY", "test-key")
+    monkeypatch.setattr(plagiarism.httpx, "Client", Client)
+    passages = [{"text": passage, "index": 0, "words": len(plagiarism._words(passage)),
+                 "start_offset": 0, "end_offset": len(passage)}]
+    report = {"searches_attempted": 0, "searches_completed": 0, "errors": []}
+
+    assert plagiarism._tavily_fallback(passages, report)
+    assert report["online_search_provider"] == "tavily"
+    assert report["online_exact_similarity_percent"] == 100.0
+    assert report["online_matches"][0]["sources"][0]["url"] == "https://example.org/guide"
+    assert report["sources"][0]["title"] == "River Restoration Guide"
+
+
+def test_text_extraction_reads_utf16_and_utf8_bom(tmp_path):
+    from services.document_processor import extract, validate_upload_content
+
+    for index, encoding in enumerate(("utf-16", "utf-8-sig")):
+        content = "Several paragraphs of readable text should survive file upload and extraction."
+        path = tmp_path / f"sample-{index}.txt"
+        data = content.encode(encoding)
+        validate_upload_content(data, ".txt")
+        path.write_bytes(data)
+        extracted, _ = extract(str(path), "document", ".txt")
+        assert extracted == content
 
 def test_plagiarism_labels_fictional_demo_reports_and_rejects_unsupported_formats():
     from io import BytesIO

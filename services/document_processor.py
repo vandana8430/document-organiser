@@ -1,5 +1,5 @@
 """Document validation, extraction, and embedding helpers."""
-import os, re, zlib, subprocess, io, zipfile, tempfile
+import os, re, zlib, subprocess, io, zipfile, tempfile, shutil
 from collections import Counter
 import numpy as np
 # ---------- CLIP: image understanding (auto-tags + visual search) ----------
@@ -59,6 +59,23 @@ KINDS = {"document": {".pdf", ".docx", ".txt", ".md", ".csv", ".xlsx", ".pptx"},
          "image": {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"},
          "video": {".mp4", ".mkv", ".mov", ".avi", ".webm"}}
 MAX_EXTRACTED_CHARS = 2_000_000
+
+def _configure_tesseract(pytesseract):
+    """Find the common Windows installer location even before PATH is refreshed."""
+    configured = os.getenv("TESSERACT_CMD", "").strip()
+    if configured and os.path.isfile(configured):
+        pytesseract.pytesseract.tesseract_cmd = configured
+        return
+    current = pytesseract.pytesseract.tesseract_cmd
+    if shutil.which(current):
+        return
+    for candidate in (
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+    ):
+        if os.path.isfile(candidate):
+            pytesseract.pytesseract.tesseract_cmd = candidate
+            return
 
 def _validate_ooxml(data, required_parts, description):
     """Validate an Office ZIP container without extracting archive paths."""
@@ -121,7 +138,7 @@ def validate_upload_content(data, ext):
             raise
         except Exception:
             raise ValueError("The image file is damaged or unreadable")
-    if ext in {".txt", ".md", ".csv"} and b"\x00" in data:
+    if ext in {".md", ".csv"} and b"\x00" in data:
         raise ValueError("The file appears to be binary, not a text document")
 
 def extract(path, kind, ext):
@@ -132,6 +149,16 @@ def extract(path, kind, ext):
         for page_number, page in enumerate(PdfReader(path).pages):
             if page_number >= 5000: break
             part = page.extract_text() or ""
+            if not part.strip():
+                # Scanned PDFs have no text layer. OCR only blank pages, keeping
+                # ordinary PDFs fast and preserving page context in the result.
+                import fitz
+                import pytesseract
+                from PIL import Image
+                _configure_tesseract(pytesseract)
+                with fitz.open(path) as pdf:
+                    raster = pdf[page_number].get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+                    part = pytesseract.image_to_string(Image.open(io.BytesIO(raster.tobytes("png")))) or ""
             if part.strip():
                 parts.append(f"Page {page_number + 1}\n{part}")
             size += len(part)
@@ -148,6 +175,16 @@ def extract(path, kind, ext):
             if paragraph.text.strip():
                 content.append(paragraph.text)
                 size += len(paragraph.text)
+                if size >= MAX_EXTRACTED_CHARS: break
+        if size < MAX_EXTRACTED_CHARS:
+            for section in document.sections:
+                for story in (section.header, section.footer):
+                    for paragraph in story.paragraphs:
+                        if paragraph.text.strip():
+                            content.append(paragraph.text)
+                            size += len(paragraph.text)
+                            if size >= MAX_EXTRACTED_CHARS: break
+                    if size >= MAX_EXTRACTED_CHARS: break
                 if size >= MAX_EXTRACTED_CHARS: break
         if size < MAX_EXTRACTED_CHARS:
             row_count = 0
@@ -205,6 +242,7 @@ def extract(path, kind, ext):
     if kind == "image":  # OCR
         import pytesseract
         from PIL import Image
+        _configure_tesseract(pytesseract)
         return pytesseract.image_to_string(Image.open(path)), None
     if kind == "video":  # FFmpeg audio extraction + speech-to-text
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temporary_audio:
@@ -218,8 +256,11 @@ def extract(path, kind, ext):
         finally:
             try: os.remove(wav)
             except OSError: pass
-    with open(path, encoding="utf-8", errors="replace") as source:
-        return source.read(MAX_EXTRACTED_CHARS + 1), None
+    with open(path, "rb") as source:
+        data = source.read(MAX_EXTRACTED_CHARS * 4 + 8)
+    if data.startswith((b"\xff\xfe", b"\xfe\xff")):
+        return data.decode("utf-16", errors="replace")[:MAX_EXTRACTED_CHARS], None
+    return data.decode("utf-8-sig", errors="replace")[:MAX_EXTRACTED_CHARS], None
 
 def make_chunks(text, segs):
     if segs:  # group ~5 transcript segments, keep start time for video moment retrieval

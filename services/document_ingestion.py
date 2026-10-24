@@ -108,6 +108,12 @@ def ingest_document(filename, data, uid, demo_key=None):
                     "Check the package installation and active Python environment. "
                     "The file is saved and can still be downloaded."
                 )
+            elif type(error).__name__ == "TesseractNotFoundError":
+                processing_warning = (
+                    "OCR is not configured: install the Tesseract executable and restart SmartFiles. "
+                    "The file is saved and can still be downloaded."
+                )
+                extraction_error = processing_warning
             else:
                 processing_warning = (
                     f"Text extraction failed ({type(error).__name__}: {error}); "

@@ -6,7 +6,8 @@ from services.llm_service import model_status
 from services.document_comparison import compare_documents
 router = APIRouter()
 
-@router.post("/api/ask")
+@router.post("/api/chat")
+@router.post("/api/ask", include_in_schema=False)
 def ask(b: dict, uid: int = Depends(me)):
     return answer_question(b, uid)
 
