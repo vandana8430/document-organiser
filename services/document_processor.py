@@ -115,6 +115,7 @@ KINDS = {"document": {".pdf", ".docx", ".txt", ".md", ".csv", ".xlsx", ".pptx"},
          "image": {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"},
          "video": {".mp4", ".mkv", ".mov", ".avi", ".webm"}}
 MAX_EXTRACTED_CHARS = int(os.getenv("SMARTFILES_MAX_EXTRACTED_CHARS", "25000000"))
+CHUNK_INDEX_VERSION = 2
 
 def _configure_tesseract(pytesseract):
     """Find the common Windows installer location even before PATH is refreshed."""
@@ -240,15 +241,20 @@ def extract(path, kind, ext):
                 if size >= MAX_EXTRACTED_CHARS:
                     return
 
-        for paragraph in document.paragraphs:
-            if paragraph.text.strip():
-                style_name = getattr(getattr(paragraph, "style", None), "name", "") or ""
-                if style_name.lower().startswith("heading"):
-                    content.append("Section: " + paragraph.text.strip())
-                else:
-                    content.append(paragraph.text)
-                size += len(paragraph.text)
-                if size >= MAX_EXTRACTED_CHARS: break
+        # Walk the DOCX body in document order. Reading all paragraphs first
+        # and all tables afterward used to detach table data from its heading
+        # and surrounding explanation, which produced misleading summaries.
+        for block in document.iter_inner_content():
+            if hasattr(block, "text"):
+                value = block.text.strip()
+                if value:
+                    style_name = getattr(getattr(block, "style", None), "name", "") or ""
+                    content.append(("Section: " if style_name.lower().startswith("heading") else "") + value)
+                    size += len(value)
+            else:
+                table_lines(block)
+            if size >= MAX_EXTRACTED_CHARS:
+                break
         if size < MAX_EXTRACTED_CHARS:
             for section in document.sections:
                 for story in (section.header, section.footer):
@@ -262,10 +268,6 @@ def extract(path, kind, ext):
                         table_lines(table)
                         if size >= MAX_EXTRACTED_CHARS: break
                     if size >= MAX_EXTRACTED_CHARS: break
-                if size >= MAX_EXTRACTED_CHARS: break
-        if size < MAX_EXTRACTED_CHARS:
-            for table in document.tables:
-                table_lines(table)
                 if size >= MAX_EXTRACTED_CHARS: break
         return "\n".join(content), None
     if ext == ".xlsx":
@@ -338,27 +340,85 @@ def make_chunks(text, segs):
     text = text or ""
     marker = re.compile(r"(?im)^\s*(Page\s+\d+|Slide\s+\d+|Section:\s*[^\r\n]+|#{1,6}\s+[^\r\n]+)\s*$")
     markers = list(marker.finditer(text))
+
+    def split_passages(body, base_offset, reference=""):
+        """Create overlapping, sentence/paragraph-aware passages."""
+        if not body.strip():
+            return []
+        target, overlap = 1400, 220
+        # Paragraph boundaries are preferred; sentences are used for oversized
+        # paragraphs, with a hard character fallback for unpunctuated text.
+        units = []
+        for paragraph_match in re.finditer(r"[^\n]+(?:\n+|$)", body):
+            para = paragraph_match.group(0).strip()
+            if not para:
+                continue
+            start = paragraph_match.start() + len(paragraph_match.group(0)) - len(paragraph_match.group(0).lstrip())
+            if len(para) <= target:
+                units.append((start, para))
+                continue
+            cursor = 0
+            for sentence in re.finditer(r"[^.!?]+[.!?]+(?:\s+|$)|.+$", para):
+                value = sentence.group(0).strip()
+                if value:
+                    units.append((start + sentence.start(), value))
+                cursor = sentence.end()
+            if cursor < len(para):
+                units.append((start + cursor, para[cursor:].strip()))
+        chunks, group, group_start, group_len = [], [], 0, 0
+        def flush():
+            if not group:
+                return
+            passage = " ".join(unit for _, unit in group)
+            if reference:
+                passage = reference + "\n" + passage
+            chunks.append((base_offset + group[0][0], passage))
+        for offset, unit in units:
+            if len(unit) > target:
+                # Preserve every character in exceptionally long unbroken runs.
+                flush()
+                group, group_len = [], 0
+                for position in range(0, len(unit), target - overlap):
+                    piece = unit[position:position + target]
+                    passage = (reference + "\n" if reference else "") + piece
+                    chunks.append((base_offset + offset + position, passage))
+                continue
+            if group and group_len + len(unit) + 1 > target:
+                flush()
+                # Keep complete trailing sentence units as overlap.
+                kept = []
+                kept_len = 0
+                for old_offset, old in reversed(group):
+                    if kept_len + len(old) + 1 > overlap:
+                        break
+                    kept.insert(0, (old_offset, old))
+                    kept_len += len(old) + 1
+                if not kept:
+                    # Long paragraphs may not fit whole in the overlap. Carry
+                    # their exact trailing characters so adjacent chunks still
+                    # share context instead of creating a hard semantic seam.
+                    previous = " ".join(value for _, value in group)
+                    tail = previous[-overlap:]
+                    tail_offset = max(group[0][0], group[-1][0] + len(group[-1][1]) - len(tail))
+                    kept = [(tail_offset, tail)]
+                    kept_len = len(tail)
+                group = kept
+                group_len = kept_len
+            if not group:
+                group_start = offset
+            group.append((offset, unit))
+            group_len += len(unit) + 1
+        flush()
+        return chunks
+
     if not markers:
-        return [(i, text[i:i + 700]) for i in range(0, len(text), 600) if text[i:i + 700].strip()]
+        return split_passages(text, 0)
 
-    chunks = []
-    def add_segment(reference, body, offset):
-        body = body.strip()
-        if not body:
-            return
-        prefix = (reference + "\n") if reference else ""
-        width = max(1, 700 - len(prefix))
-        stride = max(1, min(600, width - 100))
-        for position in range(0, len(body), stride):
-            passage = prefix + body[position:position + width]
-            if passage.strip():
-                chunks.append((offset + position, passage))
-
-    add_segment("", text[:markers[0].start()], 0)
+    chunks = split_passages(text[:markers[0].start()], 0)
     for index, match in enumerate(markers):
         end = markers[index + 1].start() if index + 1 < len(markers) else len(text)
         raw_reference = match.group(1).strip()
         reference = "Section: " + raw_reference.lstrip("# ").strip() if raw_reference.startswith("#") else raw_reference
-        add_segment(reference, text[match.end():end], match.start())
+        chunks.extend(split_passages(text[match.end():end], match.start(), reference))
     return chunks
 

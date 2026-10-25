@@ -205,7 +205,7 @@ def test_auth_document_flow_search_duplicates_comparison_and_assistant():
     assert "30 November 2026" in answer["answer"]
     insufficient = client.post("/api/ask", json={"question": "What color is the spaceship?"}).json()
     assert insufficient["answer_mode"] == "ai_error"
-    assert "gemini_api_key" in insufficient["ai_error"].lower()
+    assert "temporarily unavailable" in insufficient["ai_error"].lower()
     assert client.post("/api/ask", json={"question": "   "}).status_code == 422
     scoped = client.post("/api/ask", json={"question": "What is this document about?", "file_id": file_id}).json()
     assert scoped["answer_mode"] == "extractive"
@@ -438,7 +438,7 @@ def test_assistant_retrieves_across_documents_long_tail_and_followups():
     missing = client.post("/api/chat", json={"question": "What color is Jupiter's ocean?"})
     assert missing.status_code == 200, missing.text
     assert missing.json()["answer_mode"] == "ai_error"
-    assert "gemini_api_key" in missing.json()["ai_error"].lower()
+    assert "temporarily unavailable" in missing.json()["ai_error"].lower()
 
 
 def test_assistant_does_not_mix_saved_plagiarism_reports_into_regular_document_answers(monkeypatch):
@@ -457,9 +457,11 @@ def test_assistant_does_not_mix_saved_plagiarism_reports_into_regular_document_a
 
     captured = {}
     monkeypatch.setattr(rag_assistant, "_plagiarism_context", unexpected_report_lookup)
-    monkeypatch.setattr(rag_assistant, "model_settings", lambda: "gemini-3.8-flash")
+    monkeypatch.setattr(rag_assistant, "model_settings", lambda: "llama3.2:3b")
 
     def fake_generate(question, history=None, evidence=None, **_kwargs):
+        if isinstance(_kwargs.get("provider_out"), dict):
+            _kwargs["provider_out"]["provider"] = "ollama"
         captured.update(question=question, history=history, evidence=evidence)
         return "The sensor is calibrated against a reference thermometer [S1]."
 
@@ -499,70 +501,48 @@ def test_owner_embeddings_are_upgraded_once_and_deleted_with_document(monkeypatc
     assert q("select id from chunks where fid=? and uid=?", (file_id, uid)) == []
 
 
-def test_assistant_uses_mocked_gemini_when_configured_and_falls_back_when_unavailable(monkeypatch):
-    from types import SimpleNamespace
-    from google import genai
+def test_assistant_posts_local_ollama_with_document_context(monkeypatch):
+    import httpx
     from services import llm_service
 
     assert client.post("/api/register", json={"email": "ollama-assistant@example.test", "password": "ollama-test-123"}).status_code == 200
     uploaded = client.post("/api/upload", files={"file": ("comet.txt", b"The blue comet passed Earth on 14 May 2024.", "text/plain")})
     assert uploaded.status_code == 200
-
-    monkeypatch.setattr(llm_service, "_api_key", lambda: "test-key")
+    monkeypatch.setenv("OLLAMA_MODEL", "llama3.2:3b")
+    monkeypatch.setattr(llm_service.httpx, "get", lambda *_args, **_kwargs: httpx.Response(
+        200, request=httpx.Request("GET", "http://localhost:11434/api/tags"),
+        json={"models": [{"name": "llama3.2:3b"}]},
+    ))
     calls = []
 
-    class FakeModels:
-        def generate_content(self, **kwargs):
-            calls.append(kwargs)
-            return SimpleNamespace(text="The comet date is 14 May 2024 [S1].")
+    def fake_post(url, json, timeout):
+        calls.append((url, json, timeout))
+        return httpx.Response(200, request=httpx.Request("POST", url),
+                              json={"message": {"content": "The comet date is 14 May 2024 [S1]."}})
 
-    class FakeClient:
-        models = FakeModels()
-        def close(self): pass
-
-    monkeypatch.setattr(genai, "Client", lambda **_kwargs: FakeClient())
-    generated = client.post("/api/chat", json={
-        "question": "When did the blue comet pass Earth?",
-        "history": [{"role": "user", "text": "hello"},
-                    {"role": "assistant", "text": "Hi, how can I help?"}],
-    })
+    monkeypatch.setattr(llm_service.httpx, "post", fake_post)
+    generated = client.post("/api/chat", json={"question": "When did the blue comet pass Earth?"})
     assert generated.status_code == 200, generated.text
     body = generated.json()
     assert body["answer_mode"] == "generated"
-    assert body["ai_status"] == "gemini"
+    assert body["ai_status"] == "ollama"
     assert "14 May 2024" in body["answer"]
     assert "S1" in body["citations"]
-    assert calls[0]["model"] == "gemini-3.8-flash"
-    assert "You are SmartFiles AI Assistant. Answer the user's exact question first." in calls[0]["config"].system_instruction
-    assert calls[0]["config"]
-    assert len(calls[0]["contents"]) == 1
-    assert "The blue comet passed Earth on 14 May 2024." in calls[0]["contents"][-1]["parts"][0]["text"]
+    assert len(calls) == 1
+    assert calls[0][0] == "http://localhost:11434/api/chat"
+    assert calls[0][1]["model"] == "llama3.2:3b"
+    assert "The blue comet passed Earth on 14 May 2024." in calls[0][1]["messages"][-1]["content"]
 
-    class UnavailableModels:
-        def generate_content(self, **_kwargs):
-            raise TimeoutError("mock slow Gemini")
-
-    class UnavailableClient:
-        models = UnavailableModels()
-        def close(self): pass
-
-    monkeypatch.setattr(genai, "Client", lambda **_kwargs: UnavailableClient())
-    fallback = client.post("/api/ask", json={"question": "When did the blue comet pass Earth?"})
-    assert fallback.status_code == 200, fallback.text
-    fallback_body = fallback.json()
-    assert fallback_body["answer_mode"] == "extractive"
-    assert fallback_body["ai_status"] == "local_extractive"
-    assert "14 May 2024" in fallback_body["answer"]
-
-    status = client.get("/api/assistant/status")
-    assert status.status_code == 200
-    assert status.json()["configured"] is True
-    assert status.json()["provider"] == "Gemini"
+    selected = client.post("/api/chat", json={
+        "question": "When did it pass Earth?", "file_id": uploaded.json()["id"]
+    })
+    assert selected.status_code == 200, selected.text
+    assert "14 May 2024" in selected.json()["answer"]
+    assert [source["name"] for source in selected.json()["sources"]] == ["comet.txt"]
 
 
-def test_assistant_general_topics_follow_up_and_history_isolation(monkeypatch):
-    from types import SimpleNamespace
-    from google import genai
+def test_assistant_general_questions_follow_up_and_history_isolation(monkeypatch):
+    import httpx
     from services import llm_service
 
     assert client.post("/api/register", json={"email": "general-chat@example.test", "password": "general-chat-123"}).status_code == 200
@@ -570,24 +550,24 @@ def test_assistant_general_topics_follow_up_and_history_isolation(monkeypatch):
         "file": ("private.txt", b"The private note says the password hint is blue marigold.", "text/plain")
     })
     assert uploaded.status_code == 200
-    monkeypatch.setattr(llm_service, "_api_key", lambda: "test-key")
+    monkeypatch.setenv("OLLAMA_MODEL", "llama3.2:3b")
+    monkeypatch.setattr(llm_service.httpx, "get", lambda *_args, **_kwargs: httpx.Response(
+        200, request=httpx.Request("GET", "http://localhost:11434/api/tags"),
+        json={"models": [{"name": "llama3.2:3b"}]},
+    ))
     calls = []
 
-    class FakeModels:
-        def generate_content(self, **kwargs):
-            calls.append(kwargs)
-            return SimpleNamespace(text=f"Answer {len(calls)}")
+    def fake_post(url, json, timeout):
+        calls.append(json)
+        return httpx.Response(200, request=httpx.Request("POST", url),
+                              json={"message": {"content": f"Answer {len(calls)}"}})
 
-    class FakeClient:
-        models = FakeModels()
-        def close(self): pass
-
-    monkeypatch.setattr(genai, "Client", lambda **_kwargs: FakeClient())
+    monkeypatch.setattr(llm_service.httpx, "post", fake_post)
     first = client.post("/api/chat", json={"question": "What is the capital of France?"})
     assert first.status_code == 200, first.text
     assert first.json()["answer_mode"] == "generated"
     assert first.json()["sources"] == []
-    assert calls[-1]["contents"][-1]["parts"][0]["text"] == "What is the capital of France?"
+    assert calls[-1]["messages"][-1]["content"] == "What is the capital of France?"
 
     history = [
         {"role": "user", "text": "What is the private password hint?"},
@@ -597,8 +577,7 @@ def test_assistant_general_topics_follow_up_and_history_isolation(monkeypatch):
     ]
     follow_up = client.post("/api/chat", json={"question": "What about its population?", "history": history})
     assert follow_up.status_code == 200, follow_up.text
-    assert len(calls[-1]["contents"]) == 3
-    assert calls[-1]["contents"][0]["parts"][0]["text"] == "What is the capital of France?"
+    assert calls[-1]["messages"][-3]["content"] == "What is the capital of France?"
 
     new_topic = client.post("/api/chat", json={
         "question": "What is photosynthesis?", "history": history + [
@@ -608,73 +587,10 @@ def test_assistant_general_topics_follow_up_and_history_isolation(monkeypatch):
     })
     assert new_topic.status_code == 200, new_topic.text
     assert new_topic.json()["sources"] == []
-    assert len(calls[-1]["contents"]) == 1
-    assert calls[-1]["contents"][0]["parts"][0]["text"] == "What is photosynthesis?"
-    assert all("blue marigold" not in str(call["contents"]) for call in calls)
-    assert all("blue marigold" not in call["config"].system_instruction for call in calls)
-
-
-@pytest.mark.parametrize("status,expected", [
-    (401, "rejected the api key"),
-    (404, "model gemini-3.8-flash is unavailable"),
-    (429, "quota or rate limit"),
-    (503, "temporarily unavailable"),
-    (504, "timed out while processing"),
-])
-def test_gemini_provider_errors_are_actionable_and_secret_free(monkeypatch, status, expected):
-    from google import genai
-    from services import llm_service
-
-    monkeypatch.setattr(llm_service, "_api_key", lambda: "test-secret-key")
-
-    class ProviderError(Exception):
-        code = status
-
-    class FakeModels:
-        def generate_content(self, **_kwargs):
-            raise ProviderError("provider details must not reach the response")
-
-    class FakeClient:
-        models = FakeModels()
-        def close(self): pass
-
-    monkeypatch.setattr(genai, "Client", lambda **_kwargs: FakeClient())
-    with pytest.raises(llm_service.ModelUnavailable) as error:
-        llm_service.generate_answer("Explain photosynthesis")
-    assert expected in str(error.value).lower()
-    assert "test-secret-key" not in str(error.value)
-    assert "provider details" not in str(error.value)
-
-
-@pytest.mark.parametrize("status", [503, 504])
-def test_gemini_retries_supported_fallback_when_primary_is_overloaded(monkeypatch, status):
-    from types import SimpleNamespace
-    from google import genai
-    from services import llm_service
-
-    monkeypatch.setattr(llm_service, "_api_key", lambda: "test-secret-key")
-    calls = []
-
-    class Overloaded(Exception):
-        code = status
-        message = "model under high demand"
-
-    class FakeModels:
-        def generate_content(self, **kwargs):
-            calls.append(kwargs["model"])
-            if len(calls) == 1:
-                raise Overloaded()
-            return SimpleNamespace(text="The real fallback response.")
-
-    class FakeClient:
-        models = FakeModels()
-        def close(self): pass
-
-    monkeypatch.setattr(genai, "Client", lambda **_kwargs: FakeClient())
-    answer = llm_service.generate_answer("Answer a test question")
-    assert answer == "The real fallback response."
-    assert calls == ["gemini-3.8-flash", "gemini-3.6-flash"]
-
+    assert [message["role"] for message in calls[-1]["messages"]] == ["system", "user"]
+    assert calls[-1]["messages"][-1]["content"] == "What is photosynthesis?"
+    assert all("blue marigold" not in str(call["messages"]) for call in calls)
+    assert all("blue marigold" not in call["messages"][0]["content"] for call in calls)
 
 def test_assistant_rejects_empty_message():
     assert client.post("/api/register", json={"email": "empty-chat@example.test", "password": "empty-chat-123"}).status_code == 200
@@ -873,12 +789,10 @@ def test_assistant_answers_education_question_from_resume_and_greeting_is_clean(
         raise AssertionError("A greeting or unrelated resume question must not retry OCR on this image")
 
     monkeypatch.setattr(rag_assistant, "extract", fail_if_ocr_is_attempted)
-    monkeypatch.setattr(rag_assistant, "model_settings", lambda: "gemini-test")
-    monkeypatch.setattr(rag_assistant, "generate_answer", lambda question, **_kwargs: "Hello! What can I help you with?")
     greeting = client.post("/api/ask", json={"question": "hello"})
     assert greeting.status_code == 200
-    assert greeting.json()["answer_mode"] == "generated"
-    assert "Hello!" in greeting.json()["answer"]
+    assert greeting.json()["answer_mode"] == "small_talk"
+    assert "Hi!" in greeting.json()["answer"]
     assert greeting.json()["sources"] == []
     assert greeting.json()["extraction_warnings"] == []
 
@@ -891,29 +805,31 @@ def test_assistant_answers_education_question_from_resume_and_greeting_is_clean(
     assert body["extraction_warnings"] == []
 
 
-def test_assistant_routes_small_talk_and_project_questions_through_gemini_without_file_context(monkeypatch):
+def test_assistant_routes_small_talk_locally_and_project_questions_without_file_context(monkeypatch):
     from services import rag_assistant
-
     assert client.post("/api/register", json={"email": "chat-smalltalk@example.test", "password": "chat-smalltalk-123"}).status_code == 200
     upload = client.post("/api/upload", files={
         "file": ("private-note.txt", b"The private note contains a secret project code: marigold.", "text/plain")
     })
     assert upload.status_code == 200
     file_id = upload.json()["id"]
-    monkeypatch.setattr(rag_assistant, "model_settings", lambda: "gemini-test")
     calls = []
 
     def fake_generate(question, **kwargs):
         calls.append((question, kwargs))
-        return "What can I help you with?" if question.lower() in {"hi", "thanks", "ok", "bye"} else "SmartFiles can search and summarize uploaded documents."
+        if isinstance(kwargs.get("provider_out"), dict):
+            kwargs["provider_out"]["provider"] = "ollama"
+        return "SmartFiles can search and summarize uploaded documents."
 
+    monkeypatch.setattr(rag_assistant, "model_settings", lambda: "llama3.2:3b")
     monkeypatch.setattr(rag_assistant, "generate_answer", fake_generate)
-    for greeting in ("hi", "thanks", "ok", "bye"):
+    for greeting in ("hi", "hello", "hey", "thanks", "bye"):
         result = client.post("/api/chat", json={"question": greeting, "file_id": file_id}).json()
-        assert result["answer_mode"] == "generated"
+        assert result["answer_mode"] == "small_talk"
+        assert result["ai_status"] == "local"
         assert result["sources"] == []
         assert result["citations"] == []
-    assert all(not kwargs.get("evidence") for _, kwargs in calls)
+    assert calls == []
 
     project = client.post("/api/chat", json={"question": "What can you do?", "file_id": file_id}).json()
     assert project["answer_mode"] == "generated"
@@ -1036,6 +952,101 @@ def test_long_document_summary_uses_real_sections():
     summary = summarize((first * 350) + (second * 350))
     assert "marine biology" in summary.lower()
     assert "temperature readings" in summary.lower()
+
+
+def test_all_document_summary_receives_complete_real_pdf_docx_and_txt(monkeypatch):
+    """Regression: summary generation must see full extracted uploads, not top-k snippets."""
+    from database.repository import q
+    from services import rag_assistant
+
+    assert client.post("/api/register", json={"email": "complete-summary@example.test", "password": "complete-summary-123"}).status_code == 200
+    root = Path(__file__).resolve().parents[1] / "sample_documents"
+    sample_paths = [
+        root / "pdf" / "02_sample_project_report.pdf",
+        root / "docx" / "02_sample_project_documentation.docx",
+        root / "txt" / "01_technical_notes.txt",
+    ]
+    uploaded = []
+    for path in sample_paths:
+        response = client.post("/api/upload", files={"file": (path.name, path.read_bytes(), "application/octet-stream")})
+        assert response.status_code == 200, response.text
+        uploaded.append(response.json()["id"])
+    saved = {row["name"]: row["text"] for row in q(
+        "select name,text from files where uid=(select id from users where email=?)", ("complete-summary@example.test",))}
+    assert all(saved[path.name].strip() for path in sample_paths)
+    captured = {}
+
+    def summarize_complete(question, documents, history=None, provider_out=None):
+        captured.update({item["name"]: item["text"] for item in documents})
+        assert provider_out is not None
+        provider_out["provider"] = "ollama"
+        return "The project report covers its implementation [S1]. The documentation describes its architecture [S2]. The notes cover technical practices [S3]."
+
+    monkeypatch.setattr(rag_assistant, "generate_document_summary", summarize_complete)
+    response = client.post("/api/chat", json={"question": "Summarize all my documents", "file_id": uploaded[0]})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["answer_mode"] == "generated"
+    assert set(captured) == {path.name for path in sample_paths}
+    assert {name: text.strip() for name, text in captured.items()} == {
+        name: text.strip() for name, text in saved.items()
+    }
+    assert {source["name"] for source in body["sources"]} == set(captured)
+    assert body["citations"] == ["S1", "S2", "S3"]
+    pdf_source = next(source for source in body["sources"] if source["name"].endswith(".pdf"))
+    assert "Page" in pdf_source["reference"]
+
+
+def test_summary_batches_preserve_every_character_and_sentence_boundaries():
+    from services.llm_service import _summary_batches
+
+    text = ("First paragraph explains the objective.\nSecond paragraph provides findings. " * 900)
+    batches = _summary_batches(text, limit=800)
+    assert "".join(batches) == text
+    assert len(batches) > 2
+    assert all(len(batch) <= 800 for batch in batches)
+
+
+def test_meaningful_chunks_overlap_and_keep_pdf_page_references():
+    from services.document_processor import make_chunks
+
+    first = "Page 1\n" + ("A detailed first page sentence explains the research method and data collection. " * 30)
+    second = "Page 2\n" + ("The second page reports the results and final recommendations. " * 30)
+    text = first + "\n" + second
+    chunks = make_chunks(text, None)
+    assert len(chunks) > 2
+    assert all(len(content) > 700 for _, content in chunks[:-1])
+    assert any("Page 1" in content for _, content in chunks)
+    assert any("Page 2" in content for _, content in chunks)
+    assert any(set(left.split()) & set(right.split()) for (_, left), (_, right) in zip(chunks, chunks[1:]))
+
+
+def test_compare_all_documents_uses_full_saved_text(monkeypatch):
+    from database.repository import q
+    from services import rag_assistant
+
+    assert client.post("/api/register", json={"email": "full-compare@example.test", "password": "full-compare-123"}).status_code == 200
+    first_text = "WaterWise uses soil moisture sensors to reduce scheduled irrigation. Its trial reduced watering by 18 percent."
+    second_text = "The campus garden saves water with rainwater tanks and drip irrigation. Its trial reduced use by 12 percent."
+    first = client.post("/api/upload", files={"file": ("waterwise_report.txt", first_text.encode(), "text/plain")})
+    second = client.post("/api/upload", files={"file": ("campus_garden.txt", second_text.encode(), "text/plain")})
+    assert first.status_code == second.status_code == 200
+    expected = {row["name"]: row["text"].strip() for row in q(
+        "select name,text from files where uid=(select id from users where email=?)", ("full-compare@example.test",))}
+    captured = {}
+
+    def fake_compare(_question, documents, **kwargs):
+        captured.update({item["name"]: item["text"].strip() for item in documents})
+        kwargs["provider_out"]["provider"] = "ollama"
+        return "Both aim to conserve water [S1] [S2], while one uses moisture sensors and the other rainwater tanks."
+
+    monkeypatch.setattr(rag_assistant, "generate_document_summary", fake_compare)
+    response = client.post("/api/chat", json={"question": "Compare all my documents"})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["answer_mode"] == "generated"
+    assert captured == expected
+    assert {source["name"] for source in body["sources"]} == set(expected)
 
 
 def test_pdf_compression_preserves_original_and_reports_real_sizes():

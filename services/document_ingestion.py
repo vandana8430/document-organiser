@@ -119,10 +119,10 @@ def ingest_document(filename, data, uid, demo_key=None):
                     f"Text extraction failed ({type(error).__name__}: {error}); "
                     "the file is saved and can still be downloaded."
                 )
-        if len(text) > MAX_EXTRACTED_CHARS:
+        if len(text) >= MAX_EXTRACTED_CHARS:
             text = text[:MAX_EXTRACTED_CHARS]
             limit_warning = (
-                "Text extraction was limited to the first 2,000,000 characters for safe indexing. "
+                f"Text extraction reached the {MAX_EXTRACTED_CHARS:,}-character indexing limit. "
                 "The full original file is available to download."
             )
             processing_warning = (processing_warning + " " + limit_warning).strip()
@@ -170,6 +170,7 @@ def ingest_document(filename, data, uid, demo_key=None):
                 [(file_id, uid, chunk_text, start, blob(vector), vector_backend)
                  for (start, chunk_text), vector in zip(chunks, vectors)],
             )
+            connection.execute("update files set chunk_version=2 where id=? and uid=?", (file_id, uid))
     except sqlite3.IntegrityError:
         try:
             os.remove(path)
@@ -256,7 +257,7 @@ def index_stored_text(uid, file_id, text, segments=None):
              for (start, chunk_text), vector in zip(chunks, vectors)],
         )
         connection.execute(
-            "update files set extraction_status='indexed',extraction_error=NULL,embedder=? where id=? and uid=?",
+            "update files set extraction_status='indexed',extraction_error=NULL,embedder=?,chunk_version=2 where id=? and uid=?",
             (backend, file_id, uid),
         )
     return len(chunks)
@@ -321,7 +322,7 @@ def reprocess_documents(uid, file_id=None):
                      for (start, chunk_text), vector in zip(chunks, vectors)],
                 )
                 connection.execute(
-                    "update files set text=?,summary=?,category=?,tags=?,emb=?,embedder=?,extraction_status='indexed',extraction_error=NULL where id=? and uid=?",
+                    "update files set text=?,summary=?,category=?,tags=?,emb=?,embedder=?,extraction_status='indexed',extraction_error=NULL,chunk_version=2 where id=? and uid=?",
                     (text, summarize(text), category, ",".join(tags), blob(mean_vector), backend, row["id"], uid),
                 )
             result["processed"].append({"id": row["id"], "name": name, "characters": len(text),

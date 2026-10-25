@@ -6,13 +6,14 @@ from difflib import get_close_matches
 import numpy as np
 from fastapi import HTTPException
 from database.repository import q, stored_file_path, transaction
-from services.document_processor import (MAX_EXTRACTED_CHARS, embed, embedding_backend,
+from services.document_processor import (CHUNK_INDEX_VERSION, MAX_EXTRACTED_CHARS, embed, embedding_backend,
                                          embedding_model_state, extract, kind_of, make_chunks, unblob)
 from services.document_ingestion import index_stored_text, refresh_owner_embeddings
 from services.categorizer import STOP, keywords
 from services.summarizer import summarize
 from services.document_comparison import compare_documents
-from services.llm_service import ModelUnavailable, generate_answer, model_settings
+from services.llm_service import (FRIENDLY_UNAVAILABLE, ModelUnavailable, generate_answer,
+                                  generate_document_summary, model_settings)
 
 
 # ---------- Owner-scoped retrieval and local extractive answers ----------
@@ -121,7 +122,9 @@ def _is_comparison_question(question):
 
 
 def _is_all_documents_summary(question):
-    return bool(re.search(r"\b(my|all|every|overall)\s+(documents?|files?)\b", question, re.I))
+    return bool(re.search(
+        r"\b(?:my\s+|every\s+|overall\s+|all(?:\s+of)?\s+(?:my\s+|the\s+|uploaded\s+)?)(?:documents?|files?)\b",
+        question, re.I))
 
 
 def _is_email_question(question):
@@ -131,7 +134,18 @@ def _is_email_question(question):
 def _is_small_talk(question):
     return bool(re.fullmatch(
         r"\s*(?:hi|hello|hey|good morning|good afternoon|good evening|"
-        r"ok|okay|thanks|thank you|thx|bye|goodbye|see you)[!.?,\s]*", question, re.I))
+        r"how are you|ok|okay|thanks|thank you|thank you so much|thx|bye|goodbye|see you)[!.?,\s]*", question, re.I))
+
+
+def _small_talk_answer(question):
+    normalized = re.sub(r"[!.?,\s]+$", "", question.strip().lower())
+    if normalized in {"thanks", "thank you", "thank you so much", "thx"}:
+        return "You're welcome! What would you like to explore next?"
+    if normalized in {"bye", "goodbye", "see you"}:
+        return "Goodbye! Your SmartFiles workspace will be here when you need it."
+    if normalized == "how are you":
+        return "I'm ready to help with your questions and documents. What can I help you with?"
+    return "Hi! I'm SmartFiles AI. Ask me a general question or choose a document to explore."
 
 
 def _clean_history(value):
@@ -151,11 +165,11 @@ def _clean_history(value):
 def _try_generated_answer(question, history, hits, extraction_warnings, retrieval_mode,
                           extra_evidence=None, extra_sources=None, allow_general=False,
                           model_errors=None):
-    """Use Gemini for an answer grounded in retrieved local evidence."""
+    """Use the configured Ollama model, with a guarded Gemini fallback."""
     model = model_settings()
     if not model:
         if model_errors is not None:
-            model_errors.append("Set GEMINI_API_KEY in the backend .env file to enable AI answers.")
+            model_errors.append(FRIENDLY_UNAVAILABLE)
         return None
     if not hits and not extra_evidence and not allow_general:
         return None
@@ -174,10 +188,11 @@ def _try_generated_answer(question, history, hits, extraction_warnings, retrieva
         # A follow-up needs only the immediately preceding exchange. Sending
         # older turns lets unrelated topics from a long chat bias this answer.
         conversation_history = history[-2:] if _is_contextual_follow_up(question) else []
+        provider = {}
         answer = generate_answer(question, history=conversation_history, evidence=evidence,
-                                 project_context=_is_project_question(question))
+                                 project_context=_is_project_question(question), provider_out=provider)
     except ModelUnavailable as error:
-        logger.warning("Gemini unavailable; returning an explicit error or exact document text (%s)", error)
+        logger.warning("Configured AI providers unavailable; using a local answer where possible (%s)", error)
         if model_errors is not None:
             model_errors.append(str(error))
         return None
@@ -189,7 +204,7 @@ def _try_generated_answer(question, history, hits, extraction_warnings, retrieva
         "sources": _assistant_sources(hits) + list(extra_sources or []),
         "citations": citations,
         "answer_mode": "generated",
-        "ai_status": "gemini",
+        "ai_status": provider.get("provider", "ollama"),
         "extraction_warnings": extraction_warnings,
         "retrieval_mode": retrieval_mode,
     }
@@ -398,6 +413,23 @@ def _recover_text(item):
 
 def retrieve_evidence(uid, question, file_id=None, k=5, file_ids=None):
     """Retrieve relevant owner-scoped passages from the complete cached chunk index."""
+    # Rebuild legacy short-window indexes once from the full saved extraction.
+    stale_sql = "select id,text from files where uid=? and chunk_version<? and trim(coalesce(text,''))!=''"
+    stale_args = [uid, CHUNK_INDEX_VERSION]
+    if file_id is not None:
+        stale_sql += " and id=?"
+        stale_args.append(file_id)
+    elif file_ids:
+        stale_sql += " and id in (" + ",".join("?" for _ in file_ids) + ")"
+        stale_args.extend(file_ids)
+    for stale in q(stale_sql, tuple(stale_args)):
+        try:
+            index_stored_text(uid, stale["id"], stale["text"])
+        except Exception as error:
+            # Existing text and chunks remain searchable if local embedding is
+            # unavailable; log the rebuild failure without leaking document data.
+            logger.warning("Chunk index refresh failed uid=%s file_id=%s type=%s",
+                           uid, stale["id"], type(error).__name__)
     sql = ("select id,uid,name,path,kind,category,summary,text,demo_key,"
            "extraction_status,extraction_error from files where uid=?")
     args = [uid]
@@ -611,6 +643,11 @@ def answer_question(b: dict, uid: int):
     history = _clean_history(b.get("history"))
     context_file_ids = _clean_file_ids(b.get("context_file_ids"))
     small_talk = _is_small_talk(question)
+    if small_talk:
+        answer = _small_talk_answer(question)
+        return {"answer": answer, "sources": [], "citations": [],
+                "answer_mode": "small_talk", "ai_status": "local",
+                "extraction_warnings": [], "retrieval_mode": "not_needed"}
     all_documents_summary = _is_summary_question(question) and _is_all_documents_summary(question)
     if len(question) > 2000:
         raise HTTPException(413, "Question is too long (maximum 2,000 characters)")
@@ -620,12 +657,22 @@ def answer_question(b: dict, uid: int):
         except (TypeError, ValueError): raise HTTPException(422, "Invalid document ID")
         if file_id < 1: raise HTTPException(422, "Invalid document ID")
 
-    # Small talk and general questions should not inherit an incidental file
-    # selection. A short follow-up can keep that scope when chat history exists.
+    # An explicit request for every file takes precedence over the single-file
+    # selector, so "summarize all my documents" cannot become a one-file answer.
+    if all_documents_summary:
+        file_id = None
+        context_file_ids = []
+    active_context_file_ids = (context_file_ids if history and
+                               (_is_contextual_follow_up(question) or _PERSONAL_DOCUMENT_INTENT.search(question))
+                               else [])
+
+    # Greetings never inherit a document selection. Keep an explicit selection
+    # for content questions, while SmartFiles product questions use app facts.
     if small_talk:
         file_id = None
         context_file_ids = []
-    elif file_id is not None and not _WORKSPACE_INTENT.search(question) and not _is_contextual_follow_up(question):
+    elif (file_id is not None and _is_project_question(question)
+          and not _PERSONAL_DOCUMENT_INTENT.search(question)):
         file_id = None
 
     # Run a cheap metadata pass before reading/indexing document text. This
@@ -651,7 +698,12 @@ def answer_question(b: dict, uid: int):
     # A named document request such as "Summarize my resume" should use the
     # matching file's content rather than unrelated high-scoring passages.
     summary_file_ids = None
-    if file_id is None and _is_summary_question(question) and metadata_matches:
+    if file_id is None and active_context_file_ids and _is_summary_question(question):
+        summary_file_ids = active_context_file_ids
+        if len(summary_file_ids) == 1:
+            file_id = summary_file_ids[0]
+            summary_file_ids = None
+    if file_id is None and not all_documents_summary and _is_summary_question(question) and metadata_matches:
         summary_file_ids = [item["id"] for item in metadata_matches]
         if len(summary_file_ids) == 1:
             file_id = summary_file_ids[0]
@@ -664,13 +716,13 @@ def answer_question(b: dict, uid: int):
                                   if turn["role"] == "user"), "")
         if previous_question:
             retrieval_question = previous_question + "\n" + question
-    if project_question and file_id is None and not context_file_ids:
+    if project_question and file_id is None and not active_context_file_ids:
         # Product questions should use the app's known feature context, not
         # happenstance matches in the user's private uploads.
         hits, retrieval_mode, extraction_warnings = [], "application", []
     else:
         hits, retrieval_mode, extraction_warnings = retrieve_evidence(
-            uid, retrieval_question, file_id, file_ids=summary_file_ids or context_file_ids or None)
+            uid, retrieval_question, file_id, file_ids=summary_file_ids or active_context_file_ids or None)
     _assistant_debug("retrieval", question=question, retrieval_question=retrieval_question,
                      chunks=[{"filename": hit.get("name", ""), "score": round(float(hit.get("score", 0)), 4)}
                              for hit in hits[:5]], retrieval_mode=retrieval_mode)
@@ -690,7 +742,12 @@ def answer_question(b: dict, uid: int):
     _assistant_debug("report_context", question=question,
                      reports=[source.get("name", "") for source in plagiarism_sources])
     model_errors = []
-    if not hits:
+    summary_has_scope = (_is_summary_question(question) and
+                         (file_id is not None or bool(summary_file_ids) or all_documents_summary))
+    comparison_has_scope = (_is_comparison_question(question) and
+                            (_is_all_documents_summary(question) or len(metadata_matches) >= 2 or
+                             len(set(active_context_file_ids + ([file_id] if file_id else []))) >= 2))
+    if not hits and not summary_has_scope and not comparison_has_scope:
         if plagiarism_evidence:
             generated = _try_generated_answer(
                 question, history, [], extraction_warnings, retrieval_mode,
@@ -738,42 +795,57 @@ def answer_question(b: dict, uid: int):
                 "extraction_warnings": extraction_warnings,
                 "retrieval_mode": retrieval_mode}
 
-    if _is_summary_question(question) and (file_id is not None or all_documents_summary):
+    if _is_summary_question(question) and (file_id is not None or summary_file_ids or all_documents_summary):
         if file_id is not None:
             summary_rows = q(
                 "select id,name,kind,category,text,summary,demo_key from files where uid=? and id=?",
                 (uid, file_id),
+            )
+        elif summary_file_ids:
+            marks = ",".join("?" for _ in summary_file_ids)
+            summary_rows = q(
+                f"select id,name,kind,category,text,summary,demo_key from files where uid=? and id in ({marks}) order by created,id",
+                tuple([uid] + summary_file_ids),
             )
         else:
             summary_rows = q(
                 "select id,name,kind,category,text,summary,demo_key from files where uid=? order by created,id",
                 (uid,),
             )
-        summary_evidence, summary_sources, sections = [], [], []
+        summary_sources, sections, full_documents = [], [], []
         for row in summary_rows:
-            content = (row["text"] or row["summary"] or "").strip()
+            content = (row["text"] or "").strip()
             if not content:
                 continue
             summary = summarize(content, n=3)
             ref = "S" + str(len(summary_sources) + 1)
             extension = os.path.splitext(row["name"] or "")[1].lstrip(".").upper()
+            pages = sorted({int(value) for value in re.findall(r"(?im)^\s*Page\s+(\d+)\b", content)})
+            location = ((f"Page {pages[0]}" if pages[0] == pages[-1] else f"Pages {pages[0]}–{pages[-1]}")
+                        if pages else _section_reference(content)) or "Full document"
             summary_sources.append({
                 "ref": ref, "id": row["id"], "name": row["name"], "kind": row["kind"],
                 "file_type": extension or row["kind"], "category": row["category"],
-                "is_demo": bool(row["demo_key"]), "reference": "Full document", "snippet": summary[:700],
+                "is_demo": bool(row["demo_key"]), "reference": location, "snippet": summary[:700],
             })
-            summary_evidence.append({
-                "source_ref": ref, "name": row["name"], "reference": "Full document", "text": summary,
-            })
+            full_documents.append({"source_ref": ref, "name": row["name"],
+                                   "reference": location + "; page labels retained in text",
+                                   "text": content})
             sections.append(f"{row['name']}: {summary} [{ref}]")
-        if summary_evidence:
-            generated = _try_generated_answer(
-                question, history, [], extraction_warnings, retrieval_mode,
-                extra_evidence=summary_evidence, extra_sources=summary_sources,
-                model_errors=model_errors,
-            )
-            if generated:
-                return generated
+        if summary_sources and full_documents:
+            try:
+                provider = {}
+                answer = generate_document_summary(question, full_documents,
+                    history=history[-2:] if _is_contextual_follow_up(question) else None,
+                    provider_out=provider)
+                valid_refs = {source["ref"] for source in summary_sources}
+                citations = [ref for ref in dict.fromkeys(re.findall(r"\[([SP]\d+)\]", answer))
+                             if ref in valid_refs]
+                return {"answer": answer, "sources": summary_sources, "citations": citations,
+                        "answer_mode": "generated", "ai_status": provider.get("provider", "ollama"),
+                        "extraction_warnings": extraction_warnings, "retrieval_mode": retrieval_mode}
+            except ModelUnavailable as error:
+                logger.warning("Full-document summary provider unavailable (%s)", error)
             return {
                 "answer": "Extractive summaries from the full document text:\n" + "\n\n".join(sections),
                 "sources": summary_sources, "citations": [source["ref"] for source in summary_sources],
@@ -781,6 +853,11 @@ def answer_question(b: dict, uid: int):
                 "extraction_warnings": extraction_warnings, "ai_error": model_errors[0] if model_errors else None,
                 "retrieval_mode": retrieval_mode,
             }
+        if summary_rows:
+            return {"answer": "I couldn't summarize the selected document because it contains no readable extracted text. Try repairing its text index or uploading a text-based copy.",
+                    "sources": [], "citations": [], "answer_mode": "extraction_unavailable",
+                    "ai_status": "not_needed", "extraction_warnings": extraction_warnings,
+                    "retrieval_mode": retrieval_mode}
 
     # If "my resume" matches more than one real document, summarize each
     # independently so the answer cannot silently describe only the newest one.
@@ -815,6 +892,56 @@ def answer_question(b: dict, uid: int):
                     "retrieval_mode": retrieval_mode}
 
     if _is_comparison_question(question):
+        # Use full saved extractions for conversational comparisons, rather
+        # than returning only aggregate TF-IDF scores from top-ranked chunks.
+        comparison_ids = []
+        if summary_file_ids:
+            comparison_ids = list(summary_file_ids)
+        elif all_documents_summary or _is_all_documents_summary(question):
+            comparison_ids = [row["id"] for row in q("select id from files where uid=? order by created,id", (uid,))]
+        elif len(metadata_matches) >= 2:
+            comparison_ids = [item["id"] for item in metadata_matches]
+        else:
+            comparison_ids = list(dict.fromkeys(
+                ([file_id] if file_id else []) + active_context_file_ids + [hit["fid"] for hit in hits]
+            ))
+        if len(comparison_ids) >= 2:
+            marks = ",".join("?" for _ in comparison_ids[:8])
+            compare_rows = q(
+                f"select id,name,kind,category,text from files where uid=? and id in ({marks}) order by created,id",
+                tuple([uid] + comparison_ids[:8]),
+            )
+            comparison_sources, comparison_documents = [], []
+            for row in compare_rows:
+                content = (row["text"] or "").strip()
+                if not content:
+                    continue
+                ref = "S" + str(len(comparison_sources) + 1)
+                pages = sorted({int(value) for value in re.findall(r"(?im)^\s*Page\s+(\d+)\b", content)})
+                location = ((f"Page {pages[0]}" if pages[0] == pages[-1] else f"Pages {pages[0]}–{pages[-1]}")
+                            if pages else _section_reference(content)) or "Full document"
+                extension = os.path.splitext(row["name"] or "")[1].lstrip(".").upper()
+                comparison_sources.append({
+                    "ref": ref, "id": row["id"], "name": row["name"], "kind": row["kind"],
+                    "file_type": extension or row["kind"], "category": row["category"],
+                    "is_demo": False, "reference": location, "snippet": content[:700],
+                })
+                comparison_documents.append({"source_ref": ref, "name": row["name"],
+                    "reference": location + "; page labels retained in text", "text": content})
+            if len(comparison_documents) >= 2:
+                try:
+                    provider = {}
+                    answer = generate_document_summary(question, comparison_documents,
+                        history=history[-2:] if _is_contextual_follow_up(question) else None,
+                        provider_out=provider)
+                    valid_refs = {source["ref"] for source in comparison_sources}
+                    citations = [ref for ref in dict.fromkeys(re.findall(r"\[([SP]\d+)\]", answer))
+                                 if ref in valid_refs]
+                    return {"answer": answer, "sources": comparison_sources, "citations": citations,
+                            "answer_mode": "generated", "ai_status": provider.get("provider", "ollama"),
+                            "extraction_warnings": extraction_warnings, "retrieval_mode": retrieval_mode}
+                except ModelUnavailable as error:
+                    logger.warning("Full-document comparison provider unavailable (%s)", error)
         documents = []
         for hit in hits:
             if hit["fid"] not in [item["id"] for item in documents]:

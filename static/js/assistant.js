@@ -1,5 +1,6 @@
-/* SmartFiles Gemini chat interface. */
+/* SmartFiles AI chat interface. */
 const assistantHistory = [];
+let assistantContextFileIds = [];
 let chatRequestId = 0;
 let chatInFlight = false;
 let activeChatController = null;
@@ -18,6 +19,7 @@ function resetAssistantChat() {
   activeChatController = null;
   chatInFlight = false;
   assistantHistory.length = 0;
+  assistantContextFileIds = [];
   showChatWelcome();
   const send = $("chatSend");
   if (send) send.disabled = false;
@@ -37,9 +39,13 @@ async function refreshAssistantStatus() {
   if (!note) return;
   try {
     const status = await requestJSON(API.assistantStatus);
-    note.textContent = status.configured
-      ? "Gemini is ready for your questions"
-      : "Add a Gemini API key to enable AI conversations";
+    if (status.configured && status.provider === "Ollama") {
+      note.textContent = `Local AI ready · ${status.model}`;
+    } else if (status.configured && status.provider === "Gemini fallback") {
+      note.textContent = "Local AI unavailable · optional fallback configured";
+    } else {
+      note.textContent = "AI is unavailable right now · check your local model";
+    }
     note.classList.toggle("is-unavailable", !status.configured);
   } catch (_) {
     note.textContent = "Assistant status is unavailable";
@@ -262,6 +268,7 @@ async function sendChatMessage() {
   activeChatController = controller;
   const requestBody = {question, history: assistantHistory.slice(-8)};
   if ($("assistantDocument")?.value) requestBody.file_id = Number($("assistantDocument").value);
+  if (assistantContextFileIds.length) requestBody.context_file_ids = assistantContextFileIds.slice(0, 8);
 
   messages.append(appendUserMessage(question));
   const pending = appendPendingMessage();
@@ -271,7 +278,7 @@ async function sendChatMessage() {
   send.disabled = true;
   notice("chatNotice", "");
   scrollChatToLatest();
-  const timeout = setTimeout(() => controller.abort(), 90000);
+  const timeout = setTimeout(() => controller.abort(), 180000);
 
   try {
     const data = await requestJSON(API.chat, {
@@ -281,6 +288,9 @@ async function sendChatMessage() {
     });
     if (requestId !== chatRequestId) return;
     pending.replaceWith(assistantReply(data));
+    if (Array.isArray(data.sources)) {
+      assistantContextFileIds = [...new Set(data.sources.map(source => Number(source.id)).filter(id => Number.isInteger(id) && id > 0))].slice(0, 8);
+    }
     if (data.answer_mode !== "ai_error") {
       assistantHistory.push({role: "user", text: question});
       assistantHistory.push({role: "assistant", text: data.answer || ""});
@@ -289,9 +299,7 @@ async function sendChatMessage() {
       resizeChatInput();
     }
     if (data.answer_mode === "ai_error") {
-      notice("chatNotice", data.ai_error || data.answer, "error");
-    } else if (data.ai_error) {
-      notice("chatNotice", `Gemini is unavailable: ${data.ai_error}`, "warning");
+      notice("chatNotice", "");
     } else if (Array.isArray(data.extraction_warnings) && data.extraction_warnings.length) {
       const skipped = data.extraction_warnings.map(item => `${item.name}: ${item.message}`).join("; ");
       notice("chatNotice", `Some documents could not be searched: ${skipped}`, "warning");
@@ -305,9 +313,9 @@ async function sendChatMessage() {
       ? "This request took too long. Please try again."
       : error instanceof TypeError
         ? "Could not reach SmartFiles. Check your connection and try again."
-        : error.message;
+        : "SmartFiles couldn't complete this message. Please try again.";
     pending.replaceWith(assistantReply({answer: message, citations: [], sources: []}));
-    notice("chatNotice", message, "error");
+    notice("chatNotice", "");
     scrollChatToLatest();
   } finally {
     clearTimeout(timeout);

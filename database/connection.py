@@ -46,6 +46,7 @@ _ensure_column("files", "demo_key", "TEXT")
 _ensure_column("chunks", "embedder", "TEXT")
 _ensure_column("files", "extraction_status", "TEXT NOT NULL DEFAULT 'unknown'")
 _ensure_column("files", "extraction_error", "TEXT")
+_ensure_column("files", "chunk_version", "INTEGER NOT NULL DEFAULT 0")
 DB.execute(
     "UPDATE files SET extraction_status=CASE "
     "WHEN trim(coalesce(text,''))='' THEN 'needs_attention' "

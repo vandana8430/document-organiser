@@ -5,12 +5,14 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def prevent_live_tavily_requests(monkeypatch):
-    """API tests must never consume the developer's real Tavily credits."""
+    """Keep all provider calls mocked and prevent tests from reading private keys."""
     monkeypatch.delenv("TAVILY_API_KEY", raising=False)
     monkeypatch.setenv("SMARTFILES_OLLAMA_EMBEDDINGS", "0")
-    # API tests must not send requests with the developer's private Gemini key.
+    monkeypatch.setenv("OLLAMA_MODEL", "")
+    monkeypatch.setenv("SMARTFILES_OLLAMA_MODEL", "")
     from services import llm_service
     monkeypatch.setattr(llm_service, "_api_key", lambda: "")
+    monkeypatch.setattr(llm_service, "_gemini_quota_until", 0.0)
 
 
 def pytest_sessionfinish(session, exitstatus):
