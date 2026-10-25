@@ -76,32 +76,37 @@ function plagiarismVerifiedMatches(report) {
   return found;
 }
 
-function renderPlagiarismResult(report) {
-  plagiarismReport.replaceChildren();
+function renderPlagiarismResult(report, target = plagiarismReport) {
+  target.replaceChildren();
   if (report.status === "failed") {
-    plagiarismReport.appendChild(plagiarismElement("p", "notice error", "The plagiarism check could not be completed. Please try again."));
+    target.appendChild(plagiarismElement("p", "notice error", report.errors && report.errors[0] ? report.errors[0] : "The plagiarism check could not be completed. Please try again."));
     return;
   }
+  if (Array.isArray(report.errors) && report.errors.length) {
+    const message = [...new Set(report.errors.filter(item => typeof item === "string" && item.trim()))].join(" ");
+    if (message) target.appendChild(plagiarismElement("p", "notice error", message));
+  }
+  if (report.online_search_status === "not_run") return;
   const matches = plagiarismVerifiedMatches(report);
   if (Number(report.academic_passages_skipped) > 0) {
-    plagiarismReport.appendChild(plagiarismElement("p", "notice", `Partial passage coverage: searched ${report.academic_passages_searched} of ${report.academic_passages_searched + report.academic_passages_skipped} passages to limit provider requests.`));
+    target.appendChild(plagiarismElement("p", "notice", `Partial passage coverage: searched ${report.academic_passages_searched} of ${report.academic_passages_searched + report.academic_passages_skipped} passages to limit provider requests.`));
   }
   if (Number(report.searches_failed) > 0) {
-    plagiarismReport.appendChild(plagiarismElement("p", "notice error", `${report.searches_failed} provider searches failed. Results and coverage are partial.`));
+    target.appendChild(plagiarismElement("p", "notice error", `${report.searches_failed} provider searches failed. Results and coverage are partial.`));
   }
   const legacyScore = Number(report.quetext_score_percent);
   if (report.quetext_score_percent !== null && report.quetext_score_percent !== undefined && Number.isFinite(legacyScore)) {
-    plagiarismReport.appendChild(plagiarismElement("p", "notice", `Overall similarity score: ${Math.max(0, Math.min(100, legacyScore)).toFixed(1)}%`));
+    target.appendChild(plagiarismElement("p", "notice", `Overall similarity score: ${Math.max(0, Math.min(100, legacyScore)).toFixed(1)}%`));
   } else if (report.academic_coverage_percent !== null && report.academic_coverage_percent !== undefined) {
     const exactPercent = Number(report.academic_coverage_percent);
     if (Number.isFinite(exactPercent)) {
-      plagiarismReport.appendChild(plagiarismElement("p", "notice", `Passages matched against accessible academic full text: ${Math.max(0, Math.min(100, exactPercent)).toFixed(1)}%`));
+      target.appendChild(plagiarismElement("p", "notice", `Passages matched against accessible academic full text: ${Math.max(0, Math.min(100, exactPercent)).toFixed(1)}%`));
     }
   } else if (report.online_search_provider === "tavily" && report.online_exact_similarity_percent !== null
       && report.online_exact_similarity_percent !== undefined) {
     const exactPercent = Number(report.online_exact_similarity_percent);
     if (Number.isFinite(exactPercent)) {
-      plagiarismReport.appendChild(plagiarismElement("p", "notice", `Verified passage coverage in searched web results: ${Math.max(0, Math.min(100, exactPercent)).toFixed(1)}%`));
+      target.appendChild(plagiarismElement("p", "notice", `Verified passage coverage in searched web results: ${Math.max(0, Math.min(100, exactPercent)).toFixed(1)}%`));
     }
   }
   const completeStatuses = ["completed", "completed_with_errors", "no_suitable_passages"];
@@ -118,18 +123,18 @@ function renderPlagiarismResult(report) {
   }
   if (!matches.length) {
     if (report.online_search_status === "no_suitable_passages") {
-      plagiarismReport.appendChild(plagiarismElement("p", "notice", "No matching content was found."));
+      target.appendChild(plagiarismElement("p", "notice", "No matching content was found."));
     } else {
       const emptyText = report.online_search_provider === "quetext"
         ? "No matching website content was found."
         : "No matching academic full text was found.";
-      plagiarismReport.appendChild(plagiarismElement("p", "notice", emptyText));
+      target.appendChild(plagiarismElement("p", "notice", emptyText));
     }
     return;
   }
 
   if (incomplete) {
-    plagiarismReport.appendChild(plagiarismElement("p", "notice error", "The online check was incomplete. Matches shown below were returned by the source-check service."));
+    target.appendChild(plagiarismElement("p", "notice error", "The online check was incomplete. Matches shown below were returned by the source-check service."));
   }
   const sources = new Map();
   matches.forEach(match => {
@@ -170,7 +175,7 @@ function renderPlagiarismResult(report) {
     });
     list.appendChild(card);
   });
-  plagiarismReport.appendChild(list);
+  target.appendChild(list);
 }
 
 async function waitForPlagiarismResult(scanId) {
@@ -189,8 +194,8 @@ async function waitForPlagiarismResult(scanId) {
     if (["completed", "completed_with_warnings", "failed"].includes(report.status)) return report;
     const progress = Number(report.quetext_progress_percent);
     const progressText = report.online_search_provider === "quetext" && Number.isFinite(progress)
-      ? `Online checker is processing the report (${progress.toFixed(0)}%).`
-      : "Searching Crossref, OpenAlex, and Semantic Scholar for academic papers and accessible source text.";
+      ? `Checking your document (${progress.toFixed(0)}%).`
+      : "Checking accessible academic sources…";
     plagiarismProgress.setAttribute("aria-valuetext", progressText);
     notice("plagiarismNotice", progressText);
     if (report.updated_at) {
@@ -230,28 +235,33 @@ plagiarismScanButton.addEventListener("click", async () => {
   notice("plagiarismNotice", `Checking ${files.length} document${files.length === 1 ? "" : "s"}...`);
   try {
     let completed = 0;
+    let failed = 0;
     for (const file of files) {
       notice("plagiarismNotice", `Uploading and checking ${file.name} (${completed + 1}/${files.length})...`);
-      const form = new FormData(); form.append("file", file);
-      const uploaded = await requestJSON(API.upload, {method: "POST", body: form});
-      if (!uploaded || !uploaded.id) throw new Error(`${file.name}: upload could not be prepared.`);
-      if (uploaded.text_extracted === false) throw new Error(`${file.name}: ${uploaded.processing_warning || "No readable text could be extracted."}`);
-      const scan = await requestJSON(API.plagiarismScans, {method: "POST", body: JSON.stringify({file_id: uploaded.id, online_search: true, online_provider: "academic"})});
-      const report = await waitForPlagiarismResult(scan.scan_id);
       const section = plagiarismElement("section", "plagiarism-document-result");
       section.appendChild(plagiarismElement("h3", "plagiarism-section-title", file.name));
-      const priorTarget = plagiarismReport;
-      const previousSections = Array.from(priorTarget.childNodes);
-      const holder = document.createElement("div");
-      // Render into the report target, then move its nodes under this document heading.
-      renderPlagiarismResult(report);
-      while (priorTarget.firstChild) holder.appendChild(priorTarget.firstChild);
-      priorTarget.replaceChildren(...previousSections, section);
-      section.appendChild(holder);
-      completed += 1;
+      const content = document.createElement("div");
+      section.appendChild(content);
+      plagiarismReport.appendChild(section);
+      try {
+        const form = new FormData(); form.append("file", file);
+        const uploaded = await requestJSON(API.upload, {method: "POST", body: form});
+        if (!uploaded || !uploaded.id) throw new Error("Upload could not be prepared.");
+        if (uploaded.text_extracted === false) throw new Error(uploaded.processing_warning || "No readable text could be extracted.");
+        const scan = await requestJSON(API.plagiarismScans, {method: "POST", body: JSON.stringify({file_id: uploaded.id, online_search: true, online_provider: "academic"})});
+        const report = await waitForPlagiarismResult(scan.scan_id);
+        renderPlagiarismResult(report, content);
+        if (report.status === "failed") failed += 1;
+        completed += 1;
+      } catch (error) {
+        failed += 1;
+        content.appendChild(plagiarismElement("p", "notice error", error.message || "This document could not be checked."));
+        completed += 1;
+      }
     }
     if (typeof loadFiles === "function") await loadFiles();
-    notice("plagiarismNotice", `Finished checking ${completed} document${completed === 1 ? "" : "s"}. Review accessible full-text evidence in each report.`, "success");
+    const resultText = `Finished checking ${completed} document${completed === 1 ? "" : "s"}.`;
+    notice("plagiarismNotice", failed ? `${resultText} ${failed} could not be fully checked; see each document result.` : `${resultText} Review accessible full-text evidence in each report.`, failed ? "error" : "success");
   } catch (error) {
     notice("plagiarismNotice", `Plagiarism check could not be completed: ${error.message}`, "error");
   } finally {

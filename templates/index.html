@@ -8,37 +8,47 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/css/style.css">
+<link rel="stylesheet" href="/static/css/style.css?v=20261025-chat">
 </head>
 <body>
 <a class="skip-link" href="#mainContent">Skip to content</a>
 
 <section id="authScreen">
   <div class="auth-layout">
-    <div class="auth-banner">
-      <div class="brand brand-light">
+    <aside class="auth-banner" aria-label="SmartFiles workspace introduction">
+      <div class="brand auth-banner-brand">
         <span class="brand-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H10l2 2.5H17.5A2.5 2.5 0 0 1 20 10v7.5A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5z" fill="currentColor" opacity=".9"/><path d="M8 13h8M8 16h5" stroke="#0f2744" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H10l2 2.5h5.5A2.5 2.5 0 0 1 20 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z" stroke="currentColor" stroke-width="1.7"/><path d="M8 13h8M8 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </span>
+        SmartFiles
+      </div>
+      <p class="auth-kicker">A clearer way to work with documents</p>
+      <h1>Your files.<br>Your intelligence.<br><span>One workspace.</span></h1>
+      <p class="auth-banner-copy">Bring every important document together. Find answers, spot what matters, and keep your work moving.</p>
+      <ul class="auth-feature-list" aria-label="SmartFiles features">
+        <li><span class="auth-check" aria-hidden="true"></span>Search across your whole document library</li>
+        <li><span class="auth-check" aria-hidden="true"></span>Ask your files questions with AI</li>
+        <li><span class="auth-check" aria-hidden="true"></span>Stay organized in one private workspace</li>
+      </ul>
+      <div class="auth-illustration" aria-hidden="true">
+        <div class="illustration-glow"></div>
+        <div class="document-card document-card-back"><span class="doc-type">DOCX</span><i></i><i></i><i></i></div>
+        <div class="document-card document-card-front"><span class="doc-fold"></span><span class="doc-type">PDF</span><strong>Project brief</strong><i></i><i></i><i class="short-line"></i></div>
+        <div class="ai-badge"><span>&#10022;</span> AI insights</div>
+        <span class="sparkle sparkle-one">&#10023;</span><span class="sparkle sparkle-two">&#10022;</span>
+      </div>
+      <div class="auth-orbit" aria-hidden="true"><span>ORGANIZE</span><span>UNDERSTAND</span><span>MOVE FORWARD</span></div>
+    </aside>
+    <div class="auth-form">
+      <div class="auth-card-brand">
+        <span class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H10l2 2.5H17.5A2.5 2.5 0 0 1 20 10v7.5A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5z" fill="currentColor"/><path d="M8 13h8M8 16h5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
         </span>
         <span>SmartFiles</span>
       </div>
-      <p class="auth-kicker">Intelligent document workspace</p>
-      <h1>Bring order to every file you keep.</h1>
-      <p>Search, compare, compress, and review documents in one private workspace with a grounded assistant.</p>
-      <ul class="auth-feature-list">
-        <li><span class="auth-check" aria-hidden="true"></span>Private library with live search and filters</li>
-        <li><span class="auth-check" aria-hidden="true"></span>Duplicate, plagiarism, and compression tools</li>
-        <li><span class="auth-check" aria-hidden="true"></span>Answers drawn only from your documents</li>
-      </ul>
-      <div class="auth-orbit" aria-hidden="true">
-        <span>PDF</span><span>DOCX</span><span>CSV</span><span>PNG</span>
-      </div>
-    </div>
-
-    <div class="auth-form">
       <div id="loginForm">
         <p class="form-kicker">Sign in</p>
-        <h2>Welcome back</h2>
+        <h2>Welcome</h2>
         <p class="muted">Open your personal SmartFiles workspace.</p>
         <div id="loginNotice" aria-live="polite"></div>
         <form id="login">
@@ -50,7 +60,7 @@
             <label for="loginPassword">Password</label>
             <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Enter your password">
           </div>
-          <button class="primary" type="submit" id="loginButton">Sign in</button>
+          <button class="primary" type="submit" id="loginButton">Sign In</button>
         </form>
         <p class="muted auth-switch">New to SmartFiles?
           <button class="switch-link" id="showRegister" type="button">Create account</button>
@@ -93,20 +103,20 @@
     </div>
     <div class="nav-label">Workspace</div>
     <nav aria-label="Workspace">
-      <button class="nav-btn active" data-view="home" type="button"><span class="nav-ico" aria-hidden="true">▦</span> Dashboard</button>
-      <button class="nav-btn" data-view="documents" type="button"><span class="nav-ico" aria-hidden="true">▤</span> My Documents</button>
-      <button class="nav-btn" data-view="upload" type="button"><span class="nav-ico" aria-hidden="true">⬆</span> Upload Documents</button>
-      <button class="nav-btn" data-view="search" type="button"><span class="nav-ico" aria-hidden="true">⌕</span> Search</button>
-      <button class="nav-btn" data-view="assistant" type="button"><span class="nav-ico" aria-hidden="true">✧</span> AI Assistant</button>
-      <button class="nav-btn" data-view="duplicates" type="button"><span class="nav-ico" aria-hidden="true">⧉</span> Duplicate Finder</button>
-      <button class="nav-btn" data-view="comparison" type="button"><span class="nav-ico" aria-hidden="true">⇄</span> Document Comparison</button>
-      <button class="nav-btn" data-view="plagiarism" type="button"><span class="nav-ico" aria-hidden="true">◎</span> Plagiarism Checker</button>
-      <button class="nav-btn" data-view="compressor" type="button"><span class="nav-ico" aria-hidden="true">◉</span> File Compressor</button>
-      <button class="nav-btn" data-view="optimizer" type="button"><span class="nav-ico" aria-hidden="true">◈</span> Storage Optimizer</button>
+      <button class="nav-btn active" data-view="home" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg></span> Dashboard</button>
+      <button class="nav-btn" data-view="documents" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3.8h7l4 4V20H7a2 2 0 0 1-2-2V5.8a2 2 0 0 1 2-2Z"/><path d="M14 4v4h4M9 13h6M9 16.5h6"/></svg></span> Documents</button>
+      <button class="nav-btn" data-view="upload" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 14v4.2A1.8 1.8 0 0 0 6.8 20h10.4a1.8 1.8 0 0 0 1.8-1.8V14"/></svg></span> Upload</button>
+      <button class="nav-btn" data-view="search" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.5 15.5 4.2 4.2"/></svg></span> Search</button>
+      <button class="nav-btn" data-view="assistant" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m12 3 1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3Z"/><path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></svg></span> AI Assistant</button>
+      <button class="nav-btn" data-view="duplicates" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h1"/></svg></span> Duplicate Finder</button>
+      <button class="nav-btn" data-view="comparison" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8h15m0 0-4-4m4 4-4 4M20 16H5m0 0 4-4m-4 4 4 4"/></svg></span> Compare</button>
+      <button class="nav-btn" data-view="plagiarism" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5M8 10.5l1.7 1.7 3.5-3.8"/></svg></span> Plagiarism</button>
+      <button class="nav-btn" data-view="compressor" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2"/></svg></span> Compress</button>
+      <button class="nav-btn" data-view="optimizer" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></span> Storage</button>
     </nav>
     <div class="sidebar-bottom">
       <div class="nav-label">Account</div>
-      <button class="nav-btn" id="logout" type="button"><span class="nav-ico" aria-hidden="true">↪</span> Sign out</button>
+      <button class="nav-btn" id="logout" type="button"><span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4M14 8l4 4-4 4m4-4H9"/></svg></span> Sign out</button>
       <div class="user-card">
         <div class="avatar" id="userAvatar">S</div>
         <div class="user-details">
@@ -152,11 +162,35 @@
     <section id="homeView" class="view active">
       <div class="welcome">
         <div>
-          <p class="eyebrow">Overview</p>
-          <h1>Welcome to SmartFiles</h1>
-          <p>Keep your documents organized and find what you need faster.</p>
+          <p class="eyebrow">YOUR WORKSPACE, IN SYNC</p>
+          <h1>Good work starts<br>with a clear view.</h1>
+          <p>Your files. Your intelligence. One workspace.</p>
         </div>
-        <div class="welcome-icon" aria-hidden="true">SF</div>
+        <div class="welcome-art" aria-hidden="true">
+          <div class="welcome-art-glow"></div>
+          <div class="welcome-paper paper-back"><span></span><i></i><i></i></div>
+          <div class="welcome-paper paper-front"><b>SF</b><span></span><i></i><i></i></div>
+          <span class="welcome-art-pill">✦ Ready when you are</span>
+        </div>
+      </div>
+
+      <div class="dashboard-feature-grid" aria-label="SmartFiles tools">
+        <button class="nav-btn dashboard-feature feature-assistant" data-view="assistant" type="button">
+          <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m12 3 1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3Z"/><path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></svg></span>
+          <span class="feature-copy"><strong>AI Assistant</strong><small>Get answers from your files</small></span><span class="feature-arrow" aria-hidden="true">&#8599;</span>
+        </button>
+        <button class="nav-btn dashboard-feature feature-plagiarism" data-view="plagiarism" type="button">
+          <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5M8 10.5l1.7 1.7 3.5-3.8"/></svg></span>
+          <span class="feature-copy"><strong>Plagiarism Checker</strong><small>Review academic text matches</small></span><span class="feature-arrow" aria-hidden="true">&#8599;</span>
+        </button>
+        <button class="nav-btn dashboard-feature feature-compress" data-view="compressor" type="button">
+          <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2"/></svg></span>
+          <span class="feature-copy"><strong>File Compression</strong><small>Make room without the hassle</small></span><span class="feature-arrow" aria-hidden="true">&#8599;</span>
+        </button>
+        <button class="nav-btn dashboard-feature feature-documents" data-view="documents" type="button">
+          <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3.8h7l4 4V20H7a2 2 0 0 1-2-2V5.8a2 2 0 0 1 2-2Z"/><path d="M14 4v4h4M9 13h6M9 16.5h6"/></svg></span>
+          <span class="feature-copy"><strong>Document Library</strong><small>Everything, neatly in one place</small></span><span class="feature-arrow" aria-hidden="true">&#8599;</span>
+        </button>
       </div>
 
       <div class="stats">
@@ -340,7 +374,7 @@
                 <textarea id="plagiarismText" rows="6" placeholder="Paste document text here"></textarea>
               </details>
             </div>
-            <p class="plagiarism-config-note">Academic discovery uses free Crossref, OpenAlex, and Semantic Scholar APIs. Matching requires accessible source body text; titles and abstracts alone are never treated as evidence.</p>
+            <p class="plagiarism-config-note">We compare text only with academic sources that provide accessible full text.</p>
           </div>
           <aside class="plagiarism-online-card" aria-label="What the results show">
             <h4>What to expect</h4>
@@ -430,34 +464,65 @@
     </section>
 
     <section id="assistantView" class="view">
-      <div class="page-hero assistant-hero">
-        <div>
-          <p class="eyebrow">Grounded answers</p>
-          <h2>AI Document Assistant</h2>
-          <p class="muted" id="assistantStatusNote">SmartFiles searches your documents and saved plagiarism reports first. Configure OLLAMA_MODEL to use your local Ollama model.</p>
-        </div>
-      </div>
-      <div class="assistant-layout">
-        <div class="chat-box">
-          <div id="chatMessages" class="chat-messages">
-            <div class="message message-assistant">Ask a question about your files, research papers, or saved plagiarism reports. SmartFiles retrieves your own evidence and uses your configured local Ollama model to answer without inventing file contents or sources.</div>
+      <div class="assistant-chat-shell">
+        <header class="assistant-chat-header">
+          <div class="assistant-chat-brand">
+            <span class="assistant-brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.8 14.2 9l6.3 2.2-6.3 2.2L12 19.7l-2.2-6.3-6.3-2.2L9.8 9 12 2.8Z"/><path d="m19 15.5.9 2.6 2.6.9-2.6.9L19 22.5l-.9-2.6-2.6-.9 2.6-.9.9-2.6Z"/></svg>
+            </span>
+            <div>
+              <p class="assistant-chat-kicker">SMARTFILES AI</p>
+              <h2>AI Assistant</h2>
+              <p class="assistant-chat-status" id="assistantStatusNote">Ask about your files or anything on your mind.</p>
+            </div>
           </div>
-          <div class="field assistant-scope"><label for="assistantDocument">Search in</label><select id="assistantDocument"><option value="">All my documents</option></select></div>
-          <form id="chatForm" class="chat-form">
-            <input id="chatInput" required maxlength="2000" aria-label="Ask SmartFiles a question" placeholder="Ask about your documents or reports...">
-            <button class="primary" type="submit" id="chatSend">Send</button>
-          </form>
-          <div id="chatNotice" aria-live="polite"></div>
-        </div>
-        <aside class="assistant-tips panel">
-          <h3>How it works</h3>
-          <ul>
-            <li>Answers use your local Ollama model and search only your own document passages.</li>
-            <li>Open a cited source to read the original file.</li>
-            <li>Ask follow-up questions or focus on one document.</li>
-            <li>Ask about saved plagiarism results to review verified passages and source links.</li>
-          </ul>
-        </aside>
+          <button class="secondary chat-new-button" id="clearChat" type="button" aria-label="Start a new chat">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>New chat</span>
+          </button>
+        </header>
+
+        <div id="chatMessages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-busy="false"></div>
+        <template id="chatWelcomeTemplate">
+          <section class="chat-welcome" aria-label="Welcome to SmartFiles AI">
+            <div class="chat-welcome-orb" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.8 14.2 9l6.3 2.2-6.3 2.2L12 19.7l-2.2-6.3-6.3-2.2L9.8 9 12 2.8Z"/><path d="m19 15.5.9 2.6 2.6.9-2.6.9.9 2.6-.9-2.6-2.6-.9 2.6-.9.9-2.6Z"/></svg>
+            </div>
+            <p class="assistant-chat-kicker">Your AI workspace</p>
+            <h3>What can I help you with?</h3>
+            <p>Chat naturally with Gemini, or ask a question about the documents in your workspace.</p>
+            <div class="chat-suggestions" aria-label="Suggested questions">
+              <button type="button" class="chat-suggestion" data-chat-prompt="What can you do?">What can you do?</button>
+              <button type="button" class="chat-suggestion" data-chat-prompt="What are the key points in my documents?">Find key points in my documents</button>
+              <button type="button" class="chat-suggestion" data-chat-prompt="Explain a topic in simple terms">Explain a topic simply</button>
+              <button type="button" class="chat-suggestion" data-chat-prompt="Find the main idea in my selected document">Ask about a document</button>
+            </div>
+          </section>
+        </template>
+
+        <footer class="chat-composer-area">
+          <div class="chat-composer">
+            <div class="chat-composer-toolbar">
+              <label class="assistant-scope" for="assistantDocument">
+                <span aria-hidden="true">⌕</span>
+                <span class="sr-only">Search in</span>
+                <select id="assistantDocument" aria-label="Search in">
+                  <option value="">All my documents</option>
+                </select>
+              </label>
+              <span class="chat-context-hint">Document answers include sources when relevant</span>
+            </div>
+            <form id="chatForm" class="chat-form">
+              <label class="sr-only" for="chatInput">Message SmartFiles AI</label>
+              <textarea id="chatInput" required maxlength="2000" rows="1" aria-label="Message SmartFiles AI" placeholder="Message SmartFiles AI..."></textarea>
+              <button class="primary chat-send-button" type="submit" id="chatSend" aria-label="Send message" title="Send message">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/></svg>
+              </button>
+            </form>
+            <div id="chatNotice" class="chat-notice" aria-live="polite"></div>
+            <p class="chat-footnote">SmartFiles AI uses Gemini. Check important details against their sources.</p>
+          </div>
+        </footer>
       </div>
     </section>
   </main>
@@ -467,7 +532,7 @@
 <script src="/static/js/documents.js" defer></script>
 <script src="/static/js/search.js" defer></script>
 <script src="/static/js/duplicates.js" defer></script>
-<script src="/static/js/assistant.js" defer></script>
+<script src="/static/js/assistant.js?v=20261025-chat" defer></script>
 <script src="/static/js/comparison.js" defer></script>
 <script src="/static/js/plagiarism.js" defer></script>
 <script src="/static/js/analytics.js" defer></script>

@@ -26,6 +26,61 @@ def test_titles_without_accessible_source_text_are_not_matches(monkeypatch):
     assert exact == {} and approximate == {}
 
 
+def test_unrelated_accessible_source_text_does_not_create_a_match(monkeypatch):
+    passage = {"index": 0, "text": "Distributed databases improve resilience through replicated storage and coordinated recovery mechanisms."}
+    paper = {"doi": "10.5555/unrelated", "title": "An unrelated accessible paper", "authors": [],
+             "url": "https://example.org/unrelated", "locations": ["https://example.org/unrelated.pdf"]}
+    unrelated = "Astronomical observations describe stellar formation across distant galaxies and instruments." * 12
+    monkeypatch.setattr(academic_sources, "_search", lambda _client, _provider, _query: [dict(paper)])
+    monkeypatch.setattr(academic_sources, "_source_text", lambda _client, _url: unrelated)
+    report = {"errors": []}
+
+    exact, approximate = academic_sources.compare([passage], report)
+
+    assert exact == {} and approximate == {}
+    assert report["sources"] == []
+    assert report["online_matches"] == []
+    assert report["candidate_matches"] == 0
+    assert report["final_matches"] == 0
+
+
+def test_relevant_passage_below_old_jaccard_cutoff_matches_with_source_evidence(monkeypatch):
+    passage_text = "Distributed databases improve resilience through replicated storage and coordinated recovery mechanisms."
+    evidence = "Distributed databases improve resilience through replicated storage and coordinated methodology protocols techniques."
+    paper = {"doi": "10.5555/near-match", "title": "A related database paper", "authors": [],
+             "url": "https://example.org/near-match", "locations": ["https://example.org/near-match.pdf"]}
+    monkeypatch.setattr(academic_sources, "_search", lambda _client, _provider, _query: [dict(paper)])
+    monkeypatch.setattr(academic_sources, "_source_text", lambda _client, _url: " ".join([evidence] * 4))
+    report = {"errors": []}
+
+    exact, approximate = academic_sources.compare([{"index": 0, "text": passage_text}], report)
+
+    assert exact == {}
+    assert approximate[0]
+    match = approximate[0][0]
+    assert match["evidence"] == evidence
+    assert match["source_title"] == paper["title"]
+    assert match["source_url"] == paper["locations"][0]
+    assert 62 <= match["similarity_percent"] < 72
+
+
+def test_empty_extraction_report_is_terminal_and_keeps_academic_schema(monkeypatch):
+    from services import plagiarism
+
+    saved = {}
+    monkeypatch.setattr(plagiarism, "_store", lambda scan_id, uid, status, report: saved.update(
+        scan_id=scan_id, uid=uid, status=status, report=dict(report)
+    ))
+
+    plagiarism._empty_report(42, 7, "empty.pdf", True, "No readable text was extracted.",
+                             online_provider="academic")
+
+    assert saved["status"] == "completed_with_warnings"
+    assert saved["report"]["online_search_provider"] == "crossref+openalex+semantic_scholar"
+    assert saved["report"]["online_search_status"] == "not_run"
+    assert saved["report"]["errors"] == ["No readable text was extracted."]
+
+
 def test_supported_formats_extract_and_documents_are_checked_independently(tmp_path, monkeypatch):
     from docx import Document
     from reportlab.pdfgen import canvas
@@ -138,6 +193,95 @@ def test_compare_reports_provider_failures_as_partial_coverage(monkeypatch):
     assert report["searches_failed"] == 3
     assert report["online_search_status"] == "completed_with_errors"
     assert "partial" in report["errors"][0]
+
+
+def test_compare_persists_progress_after_matching_source_text(monkeypatch):
+    passage = {"index": 0, "text": "Distributed databases improve resilience through replicated storage and coordinated recovery mechanisms."}
+    paper = {"doi": "10.5555/progress", "title": "Distributed database resilience", "authors": [],
+             "url": "https://example.org/paper", "locations": ["https://example.org/paper.pdf"]}
+    monkeypatch.setattr(academic_sources, "_search", lambda _client, _provider, _query: [dict(paper)])
+    monkeypatch.setattr(academic_sources, "_source_text", lambda _client, _url: " ".join([passage["text"]] * 12))
+    report = {"errors": []}
+    progress_snapshots = []
+
+    academic_sources.compare([passage], report, progress_callback=lambda: progress_snapshots.append(
+        (report.get("academic_progress"), len(report.get("online_matches", [])))
+    ))
+
+    assert report["academic_passages_searched"] == 1
+    assert report["online_search_status"] == "completed"
+    assert any(matches for _stage, matches in progress_snapshots)
+    assert progress_snapshots[-1][0] == "Academic search finished"
+
+
+def test_provider_searches_run_concurrently_and_duplicate_queries_are_reused(monkeypatch):
+    import threading
+
+    barrier = threading.Barrier(3)
+    calls = []
+    def parallel_search(_client, provider, _query):
+        calls.append(provider)
+        barrier.wait(timeout=3)
+        return []
+
+    monkeypatch.setattr(academic_sources, "_search", parallel_search)
+    passage = {"index": 0, "text": "Distributed databases improve resilience through replicated storage and coordinated recovery mechanisms."}
+    report = {"errors": []}
+
+    exact, approximate = academic_sources.compare([passage, dict(passage)], report)
+
+    assert exact == {} and approximate == {}
+    assert sorted(calls) == ["crossref", "openalex", "semantic_scholar"]
+    assert report["searches_attempted"] == 6
+    assert report["searches_completed"] == 6
+
+
+def test_provider_duplicates_merge_open_access_locations(monkeypatch):
+    passage = {"index": 0, "text": "Distributed databases improve resilience through replicated storage and coordinated recovery mechanisms."}
+    responses = {
+        "crossref": [{"doi": "10.5555/merged", "title": "Merged academic paper",
+                      "url": "https://doi.org/10.5555/merged", "locations": []}],
+        "openalex": [{"doi": "10.5555/merged", "title": "Merged academic paper",
+                       "url": "https://papers.invalid/landing", "locations": ["https://papers.invalid/fulltext.pdf"]}],
+        "semantic_scholar": [],
+    }
+    retrieved = []
+    monkeypatch.setattr(academic_sources, "_search", lambda _client, provider, _query: responses[provider])
+    monkeypatch.setattr(academic_sources, "_source_text", lambda _client, url: retrieved.append(url) or
+                        (" ".join([passage["text"]] * 12) if url.endswith(".pdf") else "Abstract only."))
+    report = {"errors": []}
+
+    exact, approximate = academic_sources.compare([passage], report)
+
+    assert exact[0]
+    assert not approximate
+    assert report["sources"][0]["url"] == "https://papers.invalid/fulltext.pdf"
+    assert "https://papers.invalid/fulltext.pdf" in retrieved
+
+
+def test_source_text_extracts_visible_html_text(monkeypatch, caplog):
+    import httpx
+    import logging
+
+    url = "https://papers.invalid/html-fulltext-progress-check"
+    caplog.set_level(logging.INFO, logger=academic_sources.__name__)
+    monkeypatch.setattr(academic_sources, "_CACHE", academic_sources.OrderedDict())
+    with httpx.Client(transport=httpx.MockTransport(lambda _request: httpx.Response(
+        200, headers={"content-type": "text/html; charset=utf-8"},
+        text="<html><script>not evidence</script><article><h2>Abstract</h2><p>Abstract only is not evidence.</p><h2>Introduction</h2><p>Visible paper passage.</p></article></html>",
+    ))) as client:
+        text = academic_sources._source_text(client, url)
+    assert text == "Introduction\nVisible paper passage."
+    assert "not evidence" not in text
+    assert "Abstract only is not evidence." not in text
+    assert "chars=35 words=4" in caplog.text
+
+    monkeypatch.setattr(academic_sources, "_CACHE", academic_sources.OrderedDict())
+    with httpx.Client(transport=httpx.MockTransport(lambda _request: httpx.Response(
+        200, headers={"content-type": "text/html; charset=utf-8"},
+        text="<html><article><h2>Abstract</h2><p>Only an abstract is available here.</p></article></html>",
+    ))) as client:
+        assert academic_sources._source_text(client, url) == ""
 
 
 def test_api_uploads_pdf_docx_txt_and_scans_each_document_independently(tmp_path, monkeypatch):

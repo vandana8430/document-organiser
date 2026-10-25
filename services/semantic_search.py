@@ -2,7 +2,8 @@
 import re
 import numpy as np
 from database.repository import q
-from services.document_processor import embed, embedding_model_state, unblob
+from services.document_processor import embed, embedding_backend, embedding_model_state, unblob
+from services.document_ingestion import refresh_owner_embeddings
 
 # ---------- Semantic search ----------
 def search_documents(query: str, uid: int, category: str = "", tag: str = "",
@@ -48,32 +49,49 @@ def search_documents(query: str, uid: int, category: str = "", tag: str = "",
         if score or not terms:
             lexical[fid] = {"score": score, "terms": matched}
 
-    # Compare stored vectors only when the real MiniLM model is available.
-    # The hashed bag-of-words fallback is deliberately never labeled semantic.
+    # Compare only vectors produced by the same active embedding model.
     chunks = q("select c.fid,c.text,c.emb,c.embedder from chunks c join files f on f.id=c.fid "
                "where c.uid=? and f.uid=?", (uid, uid))
     chunks = [chunk for chunk in chunks if chunk["fid"] in files_by_id]
     semantic = {}
     semantic_status = "no_compatible_embeddings"
-    compatible_chunks = [chunk for chunk in chunks if chunk["embedder"] == "minilm"]
-    if query and compatible_chunks:
+    if query and chunks:
         if embedding_model_state() is False:
-            semantic_status = "model_unavailable"
-        else:
             try:
                 query_vector = embed([query])[0]
-                if embedding_model_state() is False:
-                    semantic_status = "model_unavailable"
-                else:
-                    vectors = np.stack([unblob(c["emb"]) for c in compatible_chunks])
-                    scores = vectors @ query_vector
-                    for i, score in enumerate(scores):
-                        chunk = compatible_chunks[i]
-                        fid = chunk["fid"]
-                        score = float(score)
-                        if fid not in semantic or score > semantic[fid]["score"]:
-                            semantic[fid] = {"score": score, "snippet": chunk["text"] or ""}
-                    semantic_status = "available"
+            except Exception:
+                query_vector = None
+        else:
+            query_vector = None
+        if query_vector is None:
+            try:
+                query_vector = embed([query])[0]
+            except Exception:
+                query_vector = None
+        backend = embedding_backend()
+        if backend != "hashed-v1" and query_vector is not None:
+            refresh_owner_embeddings(uid, backend)
+            chunks = q("select c.fid,c.text,c.emb,c.embedder from chunks c join files f on f.id=c.fid "
+                       "where c.uid=? and f.uid=?", (uid, uid))
+            compatible_chunks = [chunk for chunk in chunks
+                                 if chunk["fid"] in files_by_id and chunk["embedder"] == backend]
+        else:
+            compatible_chunks = []
+            if query_vector is None or backend == "hashed-v1":
+                semantic_status = "model_unavailable"
+        if compatible_chunks:
+            try:
+                vectors = np.stack([unblob(c["emb"]) for c in compatible_chunks])
+                if vectors.shape[1] != query_vector.size:
+                    raise ValueError("Stored embedding dimensions do not match the query")
+                scores = vectors @ query_vector
+                for i, score in enumerate(scores):
+                    chunk = compatible_chunks[i]
+                    fid = chunk["fid"]
+                    score = float(score)
+                    if fid not in semantic or score > semantic[fid]["score"]:
+                        semantic[fid] = {"score": score, "snippet": chunk["text"] or ""}
+                semantic_status = "available"
             except Exception:
                 semantic_status = "model_unavailable"
                 semantic = {}
@@ -119,7 +137,7 @@ def search_documents(query: str, uid: int, category: str = "", tag: str = "",
                         "created": item["created"], "is_demo": bool(item["demo_key"])})
 
     results.sort(key=lambda result: (result["score"], result["created"] or 0), reverse=True)
-    search_methods = methods + (["MiniLM semantic embeddings"] if semantic_status == "available" else [])
+    search_methods = methods + (["Semantic embeddings"] if semantic_status == "available" else [])
     return {"query": query, "results": results[:30], "search_methods": search_methods,
             "semantic_status": semantic_status}
 

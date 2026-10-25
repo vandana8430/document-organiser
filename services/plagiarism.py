@@ -29,6 +29,7 @@ MIN_PASSAGE_WORDS = max(1, int(os.getenv("SMARTFILES_MIN_PASSAGE_WORDS", "8")))
 QUETEXT_CONNECT_TIMEOUT_SECONDS = float(os.getenv("SMARTFILES_QUETEXT_CONNECT_TIMEOUT_SECONDS", "15.0"))
 QUETEXT_READ_TIMEOUT_SECONDS = float(os.getenv("SMARTFILES_QUETEXT_READ_TIMEOUT_SECONDS", "90.0"))
 QUETEXT_WRITE_TIMEOUT_SECONDS = float(os.getenv("SMARTFILES_QUETEXT_WRITE_TIMEOUT_SECONDS", "60.0"))
+SCAN_STALE_SECONDS = 15 * 60
 logger = logging.getLogger(__name__)
 
 
@@ -347,10 +348,13 @@ def _store(scan_id, uid, status, report):
         )
 
 
-def _empty_report(scan_id, uid, name, online_requested, error, is_demo=False):
-    report = _base_report(name, online_requested, is_demo)
+def _empty_report(scan_id, uid, name, online_requested, error, is_demo=False, online_provider="quetext"):
+    report = _base_report(name, online_requested, is_demo, online_provider)
     report["scan_id"] = scan_id
+    report["online_search_status"] = "not_run" if online_requested else "not_requested"
     report["errors"].append(error)
+    logger.warning("Plagiarism scan ended before comparison scan_id=%s document=%r provider=%s error=%s",
+                   scan_id, name, report.get("online_search_provider"), error)
     _store(scan_id, uid, "completed_with_warnings", report)
 
 
@@ -373,19 +377,33 @@ def create_scan(uid, file_id, online_requested, online_provider="quetext"):
 
         if online_requested:
             recent = connection.execute(
-                "SELECT s.id,s.status,s.created,s.report_json FROM plagiarism_scans s "
+            "SELECT s.id,s.status,s.created,s.updated,s.report_json FROM plagiarism_scans s "
                 "JOIN files f ON f.id=s.fid "
                 "WHERE s.uid=? AND f.sha=? AND s.online_requested=1 AND s.created>=? "
                 "ORDER BY s.created DESC LIMIT 50",
                 (uid, rows[0]["sha"], now - 30 * 24 * 60 * 60),
             ).fetchall()
             if recent:
+                # A dead background worker must not make identical documents reuse
+                # a permanently active scan. Keep its saved result, but close it.
+                for active in recent:
+                    if active["status"] in {"queued", "scanning", "searching"} and now - active["updated"] > SCAN_STALE_SECONDS:
+                        stale_report = json.loads(active["report_json"])
+                        stale_report.setdefault("errors", []).append(
+                            "The background scan stopped updating and was marked failed. Start a new scan to retry."
+                        )
+                        stale_report["status"] = "failed"
+                        connection.execute(
+                            "UPDATE plagiarism_scans SET status='failed',updated=?,report_json=? WHERE id=? AND uid=?",
+                            (now, json.dumps(stale_report, ensure_ascii=False), active["id"], uid),
+                        )
                 for active in recent:
                     active_report = json.loads(active["report_json"])
                     if (
                         active_report.get("online_search_provider") == ("crossref+openalex+semantic_scholar" if online_provider == "academic" else "quetext")
                         and active_report.get("online_search_mode") == ("academic_fulltext_v1" if online_provider == "academic" else "quetext_report_v1")
                         and active["status"] in {"queued", "scanning", "searching"}
+                        and now - active["updated"] <= SCAN_STALE_SECONDS
                     ):
                         return {"scan_id": active["id"], "status": active["status"], "reused": True}
                 # Reuse the real provider report for identical document bytes. This
@@ -404,7 +422,8 @@ def create_scan(uid, file_id, online_requested, online_provider="quetext"):
                     recent_report.get("online_search_provider") == ("crossref+openalex+semantic_scholar" if online_provider == "academic" else "quetext")
                     and recent_report.get("online_search_mode") == ("academic_fulltext_v1" if online_provider == "academic" else "quetext_report_v1")
                 )
-                if is_quetext_report and recent[0]["status"] in {"queued", "scanning", "searching"}:
+                if (is_quetext_report and recent[0]["status"] in {"queued", "scanning", "searching"}
+                        and now - recent[0]["updated"] <= SCAN_STALE_SECONDS):
                     return {"scan_id": recent[0]["id"], "status": recent[0]["status"], "reused": True}
                 if is_quetext_report and recent_report.get("quetext_submission_uncertain"):
                     return {"scan_id": recent[0]["id"], "status": recent[0]["status"], "reused": True}
@@ -921,13 +940,36 @@ def _online_comparison(
 
 
 def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None, online_provider="quetext"):
+    """Run a scan and persist a terminal state even if setup fails before analysis starts."""
+    try:
+        _run_scan_impl(scan_id, uid, file_id, online_requested, resume_report_id, online_provider)
+    except Exception:
+        logger.exception("Plagiarism scan worker failed during startup for scan_id=%s uid=%s", scan_id, uid)
+        try:
+            rows = q("SELECT status,report_json FROM plagiarism_scans WHERE id=? AND uid=?", (scan_id, uid))
+            if rows and rows[0]["status"] not in {"completed", "completed_with_warnings", "failed"}:
+                report = json.loads(rows[0]["report_json"])
+                report.setdefault("errors", []).append(
+                    "The scan worker could not start or continue. The saved scan was marked failed; retry it to continue."
+                )
+                _unique_errors(report)
+                _store(scan_id, uid, "failed", report)
+        except Exception:
+            logger.exception("Could not persist failed state for plagiarism scan_id=%s", scan_id)
+
+
+def _run_scan_impl(scan_id, uid, file_id, online_requested, resume_report_id=None, online_provider="quetext"):
     """Run local analysis and optional bounded web searches as a background task."""
+    scan_started = time.perf_counter()
+    logger.info("Plagiarism scan worker started scan_id=%s uid=%s file_id=%s online=%s provider=%s",
+                scan_id, uid, file_id, online_requested, online_provider)
     rows = q(
         "SELECT id,name,path,kind,text,demo_key FROM files WHERE id=? AND uid=?",
         (file_id, uid),
     )
     if not rows:
-        _empty_report(scan_id, uid, "Unavailable document", online_requested, "The document is no longer in this account.")
+        _empty_report(scan_id, uid, "Unavailable document", online_requested,
+                      "The document is no longer in this account.", online_provider=online_provider)
         return
     file = rows[0]
     is_demo = bool(file["demo_key"])
@@ -935,37 +977,52 @@ def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None, onl
     report["scan_id"] = scan_id
     _store(scan_id, uid, "scanning", report)
     try:
+        extraction_started = time.perf_counter()
         text = (file["text"] or "").strip()
+        extraction_source = "stored_text"
         if not text:
+            extraction_source = "original_file"
             extension = os.path.splitext(file["name"])[1].lower()
             path = stored_file_path(file["path"])
             if not path.is_file():
-                _empty_report(scan_id, uid, file["name"], online_requested, "The stored original file is missing.", is_demo)
+                _empty_report(scan_id, uid, file["name"], online_requested,
+                              "The stored original file is missing.", is_demo, online_provider)
                 return
             try:
                 text, _ = extract(str(path), file["kind"], extension)
             except Exception as error:
+                logger.exception("Plagiarism document extraction failed scan_id=%s file_id=%s ext=%s",
+                                 scan_id, file_id, extension)
                 message = (
                     "OCR is not configured: install the Tesseract executable and restart SmartFiles."
                     if type(error).__name__ == "TesseractNotFoundError"
                     else f"Text extraction failed ({type(error).__name__}); the original upload is still available."
                 )
-                _empty_report(scan_id, uid, file["name"], online_requested, message, is_demo)
+                _empty_report(scan_id, uid, file["name"], online_requested, message, is_demo, online_provider)
                 return
             text = (text or "").strip()
+        logger.info("Plagiarism document text scan_id=%s file_id=%s name=%r source=%s chars=%d words=%d elapsed_ms=%.1f",
+                    scan_id, file_id, file["name"], extraction_source, len(text), len(_words(text)),
+                    (time.perf_counter() - extraction_started) * 1000)
         if not text:
             if os.path.splitext(file["name"])[1].lower() == ".pdf":
                 error = "No readable text was extracted from this PDF. It may be blank or scanned; scanned pages require legible text and Tesseract OCR."
             else:
                 error = "No readable text was extracted from this document."
-            _empty_report(scan_id, uid, file["name"], online_requested, error, is_demo)
+            _empty_report(scan_id, uid, file["name"], online_requested, error, is_demo, online_provider)
             return
 
+        passage_started = time.perf_counter()
         all_sentences = _sentences_with_offsets(text)
         passages, total_eligible = _candidate_passages(all_sentences)
         if not passages:
-            _empty_report(scan_id, uid, file["name"], online_requested, "The document has no passages long enough to compare.", is_demo)
+            _empty_report(scan_id, uid, file["name"], online_requested,
+                          "The document has no passages long enough to compare.", is_demo, online_provider)
             return
+        logger.info("Plagiarism passages prepared scan_id=%s file_id=%s eligible_passages=%d analyzed_passages=%d eligible_words=%d elapsed_ms=%.1f",
+                    scan_id, file_id, total_eligible, len(passages),
+                    sum(passage["words"] for passage in passages),
+                    (time.perf_counter() - passage_started) * 1000)
         report["eligible_words_analyzed"] = sum(passage["words"] for passage in passages)
         report["analyzed_passages"] = len(passages)
         if total_eligible > len(passages):
@@ -982,7 +1039,10 @@ def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None, onl
             local_exact, local_approx = _local_comparison(uid, file_id, passages, report)
         _store(scan_id, uid, "searching" if online_requested else "scanning", report)
         if online_requested and online_provider == "academic":
-            online_exact, online_approx = _academic_comparison(passages, report)
+            online_exact, online_approx = _academic_comparison(
+                passages, report, progress_callback=lambda: _store(scan_id, uid, "searching", report),
+                scan_id=scan_id,
+            )
         elif online_requested:
             online_exact, online_approx = _online_comparison(
                 passages, report, text,
@@ -1078,6 +1138,10 @@ def run_scan(scan_id, uid, file_id, online_requested, resume_report_id=None, onl
             final_status = "completed"
         _unique_errors(report)
         _store(scan_id, uid, final_status, report)
+        logger.info("Plagiarism scan completed scan_id=%s status=%s exact_passages=%d approximate_passages=%d online_matches=%d source_count=%d errors=%d elapsed_ms=%.1f",
+                    scan_id, final_status, report["exact_match_count"], report["approximate_match_count"],
+                    len(report.get("online_matches", [])), len(report.get("sources", [])),
+                    len(report.get("errors", [])), (time.perf_counter() - scan_started) * 1000)
     except Exception:
         logger.exception("Plagiarism scan failed for scan_id=%s uid=%s", scan_id, uid)
         report["errors"].append(
@@ -1103,6 +1167,19 @@ def _saved_scan(uid, scan_id):
 
 def get_report(uid, scan_id):
     row, report = _saved_scan(uid, scan_id)
+    if row["status"] in {"queued", "scanning", "searching"} and _now() - row["updated"] > SCAN_STALE_SECONDS:
+        report.setdefault("errors", []).append(
+            "The background scan stopped updating and was marked failed. Start a new scan to retry."
+        )
+        _unique_errors(report)
+        report["status"] = "failed"
+        with transaction() as connection:
+            connection.execute(
+                "UPDATE plagiarism_scans SET status='failed',updated=?,report_json=? "
+                "WHERE id=? AND uid=? AND status IN ('queued','scanning','searching') AND updated=?",
+                (_now(), json.dumps(report, ensure_ascii=False), scan_id, uid, row["updated"]),
+            )
+        row, report = _saved_scan(uid, scan_id)
     if report.get("online_search_requested"):
         # Older saved online reports may contain local matches from previous
         # versions. Keep them out of the website-source report and its PDF.

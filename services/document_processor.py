@@ -1,6 +1,7 @@
 """Document validation, extraction, and embedding helpers."""
-import os, re, zlib, subprocess, io, zipfile, tempfile, shutil
+import os, re, zlib, subprocess, io, zipfile, tempfile, shutil, time
 from collections import Counter
+import httpx
 import numpy as np
 # ---------- CLIP: image understanding (auto-tags + visual search) ----------
 _c = None
@@ -25,10 +26,59 @@ def image_info(path):
     s = c.encode(LABELS, normalize_embeddings=True) @ e
     return e.astype(np.float32), [LABELS[i] for i in np.argsort(-s)[:2] if s[i] > 0.2]
 
-# ---------- Embeddings (MiniLM if installed, hashed bag-of-words fallback) ----------
+# ---------- Embeddings (Ollama embeddinggemma, optional MiniLM, lexical fallback) ----------
 _m = None
+_active_embedding_backend = None
+_ollama_embedding_retry_after = 0.0
+
+
+def _embedding_settings():
+    model = os.getenv("OLLAMA_EMBEDDING_MODEL", "embeddinggemma").strip() or "embeddinggemma"
+    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").strip().rstrip("/")
+    url = os.getenv("OLLAMA_EMBEDDING_URL", "").strip() or f"{base_url}/api/embed"
+    return model, url
+
+
+def _embed_with_ollama(texts, model, url):
+    vectors = []
+    timeout = float(os.getenv("OLLAMA_EMBED_TIMEOUT_SECONDS", "90"))
+    timeout = min(300.0, max(5.0, timeout))
+    request_timeout = httpx.Timeout(timeout, connect=min(4.0, timeout))
+    for start in range(0, len(texts), 32):
+        batch = texts[start:start + 32]
+        response = httpx.post(url, json={"model": model, "input": batch}, timeout=request_timeout)
+        response.raise_for_status()
+        payload = response.json()
+        batch_vectors = payload.get("embeddings") if isinstance(payload, dict) else None
+        if batch_vectors is None and isinstance(payload, dict) and len(batch) == 1:
+            one = payload.get("embedding")
+            batch_vectors = [one] if isinstance(one, list) else None
+        if not isinstance(batch_vectors, list) or len(batch_vectors) != len(batch):
+            raise ValueError("Ollama returned an invalid embedding response")
+        vectors.extend(batch_vectors)
+    result = np.asarray(vectors, dtype=np.float32)
+    if result.ndim != 2 or result.shape[0] != len(texts) or result.shape[1] == 0 or not np.isfinite(result).all():
+        raise ValueError("Ollama returned invalid embedding vectors")
+    return result / (np.linalg.norm(result, axis=1, keepdims=True) + 1e-9)
+
+
 def embed(texts):
-    global _m
+    global _m, _active_embedding_backend, _ollama_embedding_retry_after
+    texts = [str(text or "") for text in texts]
+    if not texts:
+        return np.zeros((0, 384), np.float32)
+    ollama_enabled = os.getenv("SMARTFILES_OLLAMA_EMBEDDINGS", "1").strip().lower() not in {"0", "false", "no"}
+    if ollama_enabled and time.monotonic() >= _ollama_embedding_retry_after:
+        try:
+            model, url = _embedding_settings()
+            result = _embed_with_ollama(texts, model, url)
+            _active_embedding_backend = "ollama:" + model
+            _ollama_embedding_retry_after = 0.0
+            return result
+        except Exception:
+            # Keep uploads and local search usable when Ollama is temporarily
+            # unavailable; the bounded retry avoids one failed request per chunk.
+            _ollama_embedding_retry_after = time.monotonic() + 30.0
     if _m is None:
         try:
             from sentence_transformers import SentenceTransformer
@@ -36,29 +86,35 @@ def embed(texts):
         except Exception:
             _m = False
     if _m:
+        _active_embedding_backend = "minilm"
         return np.asarray(_m.encode(texts, normalize_embeddings=True), dtype=np.float32)
     out = np.zeros((len(texts), 384), np.float32)
     for i, t in enumerate(texts):
         for w in re.findall(r"\w+", t.lower()):
             out[i, zlib.crc32(w.encode()) % 384] += 1
+    _active_embedding_backend = "hashed-v1"
     return out / (np.linalg.norm(out, axis=1, keepdims=True) + 1e-9)
 
 blob = lambda v: v.astype(np.float32).tobytes()
 unblob = lambda b: np.frombuffer(b, np.float32)
 
 def embedding_model_state():
-    """Return True/False when the optional sentence model has been attempted, else None."""
+    """Return whether the active vectors use a semantic model, if initialized."""
+    if _active_embedding_backend is not None:
+        return _active_embedding_backend != "hashed-v1"
     return None if _m is None else _m is not False
 
 def embedding_backend():
-    """Return a durable label so hashed vectors are never mistaken for MiniLM vectors."""
+    """Return a durable model label so incompatible vectors are never compared."""
+    if _active_embedding_backend is not None:
+        return _active_embedding_backend
     return "minilm" if _m is not None and _m is not False else "hashed-v1"
 
 # ---------- Content extraction (docs, OCR, video transcripts) ----------
 KINDS = {"document": {".pdf", ".docx", ".txt", ".md", ".csv", ".xlsx", ".pptx"},
          "image": {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"},
          "video": {".mp4", ".mkv", ".mov", ".avi", ".webm"}}
-MAX_EXTRACTED_CHARS = 2_000_000
+MAX_EXTRACTED_CHARS = int(os.getenv("SMARTFILES_MAX_EXTRACTED_CHARS", "25000000"))
 
 def _configure_tesseract(pytesseract):
     """Find the common Windows installer location even before PATH is refreshed."""
@@ -147,7 +203,6 @@ def extract(path, kind, ext):
         from pypdf import PdfReader
         parts, size = [], 0
         for page_number, page in enumerate(PdfReader(path).pages):
-            if page_number >= 5000: break
             part = page.extract_text() or ""
             if not part.strip():
                 # Scanned PDFs have no text layer. OCR only blank pages, keeping
@@ -168,12 +223,30 @@ def extract(path, kind, ext):
         from docx import Document
         document = Document(path)
         content, size = [], 0
-        paragraph_count = 0
+
+        def table_lines(table):
+            nonlocal size
+            for row in table.rows:
+                cells = []
+                for cell in row.cells:
+                    values = [paragraph.text.strip() for paragraph in cell.paragraphs if paragraph.text.strip()]
+                    for nested_table in cell.tables:
+                        values.extend(table_lines(nested_table))
+                    cells.append(" / ".join(values))
+                line = " | ".join(cells)
+                if line.strip():
+                    content.append(line)
+                    size += len(line)
+                if size >= MAX_EXTRACTED_CHARS:
+                    return
+
         for paragraph in document.paragraphs:
-            paragraph_count += 1
-            if paragraph_count > 50000: break
             if paragraph.text.strip():
-                content.append(paragraph.text)
+                style_name = getattr(getattr(paragraph, "style", None), "name", "") or ""
+                if style_name.lower().startswith("heading"):
+                    content.append("Section: " + paragraph.text.strip())
+                else:
+                    content.append(paragraph.text)
                 size += len(paragraph.text)
                 if size >= MAX_EXTRACTED_CHARS: break
         if size < MAX_EXTRACTED_CHARS:
@@ -185,18 +258,15 @@ def extract(path, kind, ext):
                             size += len(paragraph.text)
                             if size >= MAX_EXTRACTED_CHARS: break
                     if size >= MAX_EXTRACTED_CHARS: break
+                    for table in story.tables:
+                        table_lines(table)
+                        if size >= MAX_EXTRACTED_CHARS: break
+                    if size >= MAX_EXTRACTED_CHARS: break
                 if size >= MAX_EXTRACTED_CHARS: break
         if size < MAX_EXTRACTED_CHARS:
-            row_count = 0
             for table in document.tables:
-                for row in table.rows:
-                    row_count += 1
-                    if row_count > 50000: break
-                    line = " | ".join(cell.text for cell in row.cells)
-                    content.append(line)
-                    size += len(line)
-                    if size >= MAX_EXTRACTED_CHARS: break
-                if size >= MAX_EXTRACTED_CHARS or row_count > 50000: break
+                table_lines(table)
+                if size >= MAX_EXTRACTED_CHARS: break
         return "\n".join(content), None
     if ext == ".xlsx":
         from openpyxl import load_workbook
@@ -265,5 +335,30 @@ def extract(path, kind, ext):
 def make_chunks(text, segs):
     if segs:  # group ~5 transcript segments, keep start time for video moment retrieval
         return [(segs[i][0], " ".join(t for _, t in segs[i:i + 5])) for i in range(0, len(segs), 5)]
-    return [(0, text[i:i + 700]) for i in range(0, len(text), 600) if text[i:i + 700].strip()]
+    text = text or ""
+    marker = re.compile(r"(?im)^\s*(Page\s+\d+|Slide\s+\d+|Section:\s*[^\r\n]+|#{1,6}\s+[^\r\n]+)\s*$")
+    markers = list(marker.finditer(text))
+    if not markers:
+        return [(i, text[i:i + 700]) for i in range(0, len(text), 600) if text[i:i + 700].strip()]
+
+    chunks = []
+    def add_segment(reference, body, offset):
+        body = body.strip()
+        if not body:
+            return
+        prefix = (reference + "\n") if reference else ""
+        width = max(1, 700 - len(prefix))
+        stride = max(1, min(600, width - 100))
+        for position in range(0, len(body), stride):
+            passage = prefix + body[position:position + width]
+            if passage.strip():
+                chunks.append((offset + position, passage))
+
+    add_segment("", text[:markers[0].start()], 0)
+    for index, match in enumerate(markers):
+        end = markers[index + 1].start() if index + 1 < len(markers) else len(text)
+        raw_reference = match.group(1).strip()
+        reference = "Section: " + raw_reference.lstrip("# ").strip() if raw_reference.startswith("#") else raw_reference
+        add_segment(reference, text[match.end():end], match.start())
+    return chunks
 

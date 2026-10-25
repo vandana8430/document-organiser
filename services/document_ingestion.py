@@ -195,6 +195,73 @@ def ingest_document(filename, data, uid, demo_key=None):
             "is_demo": bool(demo_key), "name": original_name}
 
 
+def refresh_owner_embeddings(uid, target_backend):
+    """Upgrade stale vectors once, without re-extracting unchanged originals."""
+    if not target_backend or target_backend == "hashed-v1":
+        return 0
+    rows = q(
+        "select c.id,c.fid,c.text from chunks c join files f on f.id=c.fid "
+        "where c.uid=? and f.uid=? and trim(coalesce(c.text,''))!='' "
+        "and coalesce(c.embedder,'')!=? order by c.fid,c.id",
+        (uid, uid, target_backend),
+    )
+    by_file = {}
+    for row in rows:
+        by_file.setdefault(row["fid"], []).append(row)
+    refreshed = 0
+    for file_id, file_chunks in by_file.items():
+        vectors = []
+        for start in range(0, len(file_chunks), 32):
+            batch = file_chunks[start:start + 32]
+            try:
+                batch_vectors = embed([row["text"] for row in batch])
+            except Exception:
+                vectors = []
+                break
+            if embedding_backend() != target_backend or len(batch_vectors) != len(batch):
+                vectors = []
+                break
+            vectors.extend(batch_vectors)
+        if len(vectors) != len(file_chunks):
+            continue
+        mean_vector = np.asarray(vectors, dtype=np.float32).mean(axis=0)
+        with transaction() as connection:
+            connection.executemany(
+                "update chunks set emb=?,embedder=? where id=? and fid=? and uid=?",
+                [(blob(vector), target_backend, row["id"], file_id, uid)
+                 for row, vector in zip(file_chunks, vectors)],
+            )
+            connection.execute(
+                "update files set emb=?,embedder=? where id=? and uid=?",
+                (blob(mean_vector), target_backend, file_id, uid),
+            )
+        refreshed += len(file_chunks)
+    return refreshed
+
+
+def index_stored_text(uid, file_id, text, segments=None):
+    """Chunk saved extraction once, without reopening the uploaded original."""
+    chunks = make_chunks((text or "")[:MAX_EXTRACTED_CHARS], segments)
+    if not chunks:
+        return 0
+    vectors = embed([chunk_text for _, chunk_text in chunks])
+    backend = embedding_backend()
+    if len(vectors) != len(chunks):
+        raise ValueError("The embedding service returned an incomplete index")
+    with transaction() as connection:
+        connection.execute("delete from chunks where fid=? and uid=?", (file_id, uid))
+        connection.executemany(
+            "insert into chunks(fid,uid,text,start,emb,embedder) values(?,?,?,?,?,?)",
+            [(file_id, uid, chunk_text, start, blob(vector), backend)
+             for (start, chunk_text), vector in zip(chunks, vectors)],
+        )
+        connection.execute(
+            "update files set extraction_status='indexed',extraction_error=NULL,embedder=? where id=? and uid=?",
+            (backend, file_id, uid),
+        )
+    return len(chunks)
+
+
 def reprocess_documents(uid, file_id=None):
     """Re-extract this user's original files and atomically replace their text index.
 

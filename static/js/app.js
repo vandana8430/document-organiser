@@ -41,6 +41,7 @@ function notice(id, message, type = "") {
 }
 
 function showAuth(mode) {
+  if (typeof resetAssistantChat === "function") resetAssistantChat();
   $("authScreen").classList.remove("hidden");
   $("dashboard").classList.add("hidden");
   $("loginForm").classList.toggle("hidden", mode !== "login");

@@ -4,84 +4,70 @@ import pytest
 from services import llm_service
 
 
-def test_ollama_chat_uses_configured_model_history_and_bounded_evidence(monkeypatch):
-    monkeypatch.setenv("OLLAMA_MODEL", "local-research:7b-q4")
-    captured = {}
+def test_embeddinggemma_indexes_with_local_ollama_embeddings(monkeypatch):
+    import numpy as np
+    from services import document_processor
+
+    monkeypatch.setenv("SMARTFILES_OLLAMA_EMBEDDINGS", "1")
+    monkeypatch.setenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    monkeypatch.setenv("OLLAMA_EMBEDDING_MODEL", "embeddinggemma")
+    monkeypatch.setattr(document_processor, "_m", False)
+    monkeypatch.setattr(document_processor, "_active_embedding_backend", None)
+    monkeypatch.setattr(document_processor, "_ollama_embedding_retry_after", 0.0)
+    calls = []
 
     def fake_post(url, json, timeout):
-        captured.update(url=url, payload=json, timeout=timeout)
-        return httpx.Response(200, json={"model": "local-research:7b-q4",
-                                         "message": {"role": "assistant", "content": "Found in the paper [S1]."},
-                                         "done": True})
+        calls.append((url, json, timeout))
+        return httpx.Response(200, request=httpx.Request("POST", url),
+                              json={"embeddings": [[3.0, 4.0], [0.0, 2.0]]})
 
-    monkeypatch.setattr(llm_service.httpx, "post", fake_post)
+    monkeypatch.setattr(document_processor.httpx, "post", fake_post)
+    vectors = document_processor.embed(["first passage", "second passage"])
+    assert vectors.shape == (2, 2)
+    assert np.allclose(np.linalg.norm(vectors, axis=1), [1.0, 1.0])
+    assert document_processor.embedding_backend() == "ollama:embeddinggemma"
+    assert calls[0][0] == "http://localhost:11434/api/embed"
+    assert calls[0][1] == {"model": "embeddinggemma", "input": ["first passage", "second passage"]}
+
+
+def test_gemini_chat_sends_valid_ordered_history_and_bounded_evidence(monkeypatch):
+    from types import SimpleNamespace
+    from google import genai
+    from google.genai import types
+
+    monkeypatch.setattr(llm_service, "_api_key", lambda: "test-key")
+    captured = {}
+
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            captured.update(kwargs)
+            for content in kwargs["contents"]:
+                types.Content.model_validate(content)
+            return SimpleNamespace(text="The experiment compared three models [S1].")
+
+    class FakeClient:
+        models = FakeModels()
+        def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setattr(genai, "Client", lambda **kwargs: FakeClient())
+    evidence = [{"source_ref": f"S{i}", "name": f"study{i}.pdf", "reference": "Page 2",
+                 "text": f"Relevant study excerpt {i}."} for i in range(1, 6)]
     answer = llm_service.generate_answer(
-        "What is the method?", history=[{"role": "user", "text": "Summarize my paper"}],
-        evidence=[{"source_ref": "S1", "name": "study.pdf", "reference": "Page 2",
-                   "text": "The experiment compared three models."}],
+        "What is the method?",
+        history=[{"role": "user", "text": "Summarize my paper"},
+                 {"role": "assistant", "text": "The paper studies three models."}],
+        evidence=evidence,
     )
-    assert answer == "Found in the paper [S1]."
-    assert captured["url"] == "http://localhost:11434/api/chat"
-    assert captured["payload"]["model"] == "local-research:7b-q4"
-    assert captured["payload"]["stream"] is False
-    assert captured["payload"]["messages"][1] == {"role": "user", "content": "Summarize my paper"}
-    prompt = captured["payload"]["messages"][-1]["content"]
-    assert "[S1] study.pdf (Page 2)" in prompt
-    assert "The experiment compared three models." in prompt
-
-
-def test_ollama_requires_model_from_environment(monkeypatch):
-    monkeypatch.delenv("OLLAMA_MODEL", raising=False)
-    monkeypatch.setattr(llm_service.httpx, "post", lambda *_args, **_kwargs: pytest.fail("must not call Ollama"))
-    with pytest.raises(llm_service.ModelUnavailable, match="Set OLLAMA_MODEL"):
-        llm_service.generate_answer("Hello")
-    status = llm_service.model_status()
-    assert status["configured"] is False
-    assert "OLLAMA_MODEL" in status["message"]
-
-
-@pytest.mark.parametrize("status_code,expected", [
-    (404, "could not find model"),
-    (500, "HTTP 500"),
-])
-def test_ollama_http_errors_are_actionable(monkeypatch, status_code, expected):
-    monkeypatch.setenv("OLLAMA_MODEL", "missing-local-model")
-    message = "model not found" if status_code == 404 else "service temporarily unavailable"
-    monkeypatch.setattr(llm_service.httpx, "post", lambda *_args, **_kwargs: httpx.Response(status_code, json={"error": message}))
-    with pytest.raises(llm_service.ModelUnavailable, match=expected):
-        llm_service.generate_answer("Hello")
-
-
-@pytest.mark.parametrize("exception,expected", [
-    (httpx.ReadTimeout("slow"), "took too long"),
-    (httpx.ConnectError("offline"), "Start Ollama"),
-])
-def test_ollama_timeout_and_connection_errors_are_actionable(monkeypatch, exception, expected):
-    monkeypatch.setenv("OLLAMA_MODEL", "local-model")
-
-    def fail(*_args, **_kwargs):
-        raise exception
-
-    monkeypatch.setattr(llm_service.httpx, "post", fail)
-    with pytest.raises(llm_service.ModelUnavailable, match=expected):
-        llm_service.generate_answer("Hello")
-
-
-def test_ollama_empty_response_and_model_status(monkeypatch):
-    monkeypatch.setenv("OLLAMA_MODEL", "local-model:latest")
-    monkeypatch.setattr(llm_service.httpx, "post", lambda *_args, **_kwargs: httpx.Response(200, json={"message": {"content": "  "}}))
-    with pytest.raises(llm_service.ModelUnavailable, match="empty answer"):
-        llm_service.generate_answer("Hello")
-
-    monkeypatch.setattr(llm_service.httpx, "get", lambda *_args, **_kwargs: httpx.Response(200, json={"models": [{"name": "local-model:latest"}]}))
-    assert llm_service.model_status() == {
-        "configured": True, "provider": "Ollama", "model": "local-model:latest",
-        "message": "Ollama model local-model:latest is ready. Document answers use retrieved evidence.",
-    }
-    monkeypatch.setattr(llm_service.httpx, "get", lambda *_args, **_kwargs: httpx.Response(200, json={"models": []}))
-    missing = llm_service.model_status()
-    assert missing["configured"] is False
-    assert "not installed" in missing["message"]
+    assert answer == "The experiment compared three models [S1]."
+    assert captured["model"] == "gemini-3.8-flash"
+    assert [turn["role"] for turn in captured["contents"]] == ["user", "model", "user"]
+    assert captured["contents"][-1]["parts"][0]["text"].startswith("The following retrieved excerpts")
+    assert "Current user question: What is the method?" in captured["contents"][-1]["parts"][0]["text"]
+    assert "study4.pdf" in captured["contents"][-1]["parts"][0]["text"]
+    assert "study5.pdf" not in captured["contents"][-1]["parts"][0]["text"]
+    assert captured["config"].temperature == 0.1
+    assert captured["closed"] is True
 
 
 def test_plagiarism_report_context_contains_only_verified_source_evidence(monkeypatch):
